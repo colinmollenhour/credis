@@ -150,6 +150,12 @@ class Credis_Client {
     protected $timeout;
 
     /**
+     * Flag to establish persistent connections with REDIS, used also as connection ID
+     * @var int
+     */
+    protected $persistent = 0;
+
+    /**
      * @var bool
      */
     protected $connected = FALSE;
@@ -217,12 +223,14 @@ class Credis_Client {
      * @param string $host The hostname of the Redis server
      * @param integer $port The port number of the Redis server
      * @param float $timeout  Timeout period in seconds
+     * @param int  $persistent  Flag to establish persistent connection
      */
-    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = 2.5)
+    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = 2.5, $persistent = 0)
     {
         $this->host = $host;
         $this->port = $port;
         $this->timeout = $timeout;
+        $this->persistent = $persistent;
         $this->standalone = ! extension_loaded('redis');
     }
 
@@ -275,12 +283,20 @@ class Credis_Client {
             if(substr($this->host,0,1) == '/') {
                 $remote_socket = 'unix://'.$this->host;
                 $this->port = null;
+                if ($this->persistent) {
+                    throw new CredisException("Persistent connections to UNIX sockets are not supported in standalone mode");
+                }
             }
             else {
               $remote_socket = 'tcp://'.$this->host.':'.$this->port;
             }
             #$this->redis = @fsockopen($this->host, $this->port, $errno, $errstr, $this->timeout);
-            $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout);
+            if($this->persistent) {
+            	    $remote_socket.="/".$this->persistent;
+            	    $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT);
+            } else {
+            	$this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout);
+            }
             if( ! $this->redis) {
                 $this->connectFailures++;
                 if ($this->connectFailures > $this->maxConnectRetries) {
@@ -295,9 +311,9 @@ class Credis_Client {
                 $this->redis = new Redis;
             }
             if(substr($this->host,0,1) == '/') {
-                $result = $this->redis->connect($this->host, null, $this->timeout);
+            	    $result = ($this->persistent)?$this->redis->pconnect($this->host, null, $this->timeout, $this->persistent):$this->redis->connect($this->host, null, $this->timeout);
             } else {
-                $result = $this->redis->connect($this->host, $this->port, $this->timeout);
+            	    $result = ($this->persistent)?$this->redis->pconnect($this->host, $this->port, $this->timeout, $this->persistent):$this->redis->connect($this->host, $this->port, $this->timeout);
             }
             if( ! $result) {
                 $this->connectFailures++;
@@ -320,10 +336,10 @@ class Credis_Client {
     {
         $result = TRUE;
         if($this->connected) {
-            if($this->standalone) {
+            if($this->standalone && !$this->persistent) {
                 $result = fclose($this->redis);
             }
-            else {
+            elseif (!$this->persistent) {
                 $result = $this->redis->close();
             }
             $this->connected = FALSE;
