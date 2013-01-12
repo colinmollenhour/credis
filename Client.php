@@ -641,7 +641,8 @@ class Credis_Client {
             }
         }
 
-        for ($written = 0; $written < strlen($command); $written += $fwrite) {
+        $commandLen = strlen($command);
+        for ($written = 0; $written < $commandLen; $written += $fwrite) {
             $fwrite = fwrite($this->redis, substr($command, $written));
             if ($fwrite === FALSE) {
                 throw new CredisException('Failed to write entire command to stream');
