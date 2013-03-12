@@ -231,11 +231,11 @@ class Credis_Client {
      * @param float $timeout  Timeout period in seconds
      * @param string $persistent  Flag to establish persistent connection
      */
-    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = 2.5, $persistent = '')
+    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = null, $persistent = '')
     {
         $this->host = (string) $host;
         $this->port = (int) $port;
-        $this->timeout = (float) $timeout;
+        $this->timeout = $timeout;
         $this->persistent = (string) $persistent;
         $this->standalone = ! extension_loaded('redis');
     }
@@ -308,7 +308,7 @@ class Credis_Client {
                 $remote_socket .= '/'.$this->persistent;
                 $flags = $flags | STREAM_CLIENT_PERSISTENT;
             }
-            $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout, $flags);
+            $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout !== null ? $this->timeout : 2.5, $flags);
         }
         else {
             if ( ! $this->redis) {
