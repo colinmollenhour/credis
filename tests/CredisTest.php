@@ -57,6 +57,22 @@ class CredisTest extends PHPUnit_Framework_TestCase
     $this->credis->setReadTimeout(10);
   }
 
+  public function testPHPRedisReadTimeout() {
+    try {
+      $this->credis->forceStandalone = false;
+      $this->credis->setReadTimeout(-1);
+    } catch(CredisException $e) {
+      $this->fail('setReadTimeout should accept -1 as timeout value');
+    }
+    try {
+      $this->credis->setReadTimeout(-2);
+      $this->fail('setReadTimeout should not accept values less than -1');
+    } catch(CredisException $e) {
+    }
+
+    $this->credis->setReadTimeout(10);
+  }
+
   public function testScalars()
   {
     // Basic get/set

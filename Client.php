@@ -391,16 +391,18 @@ class Credis_Client {
      */
     public function setReadTimeout($timeout)
     {
-        if ($timeout < 0) {
-            throw new CredisException('Negative read timeout values are not supported.');
+        if ($timeout < -1) {
+            throw new CredisException('Timeout values less than -1 are not accepted.');
         }
         $this->readTimeout = $timeout;
         if ($this->connected) {
             if ($this->standalone) {
+                $timeout = max($timeout, 0);
                 stream_set_timeout($this->redis, (int) floor($timeout), ($timeout - floor($timeout)) * 1000000);
             } else if (defined('Redis::OPT_READ_TIMEOUT')) {
-                // Not supported at time of writing, but hopefully this pull request will someday be merged:
-                // https://github.com/nicolasff/phpredis/pull/260
+                // supported in phpredis 2.2.3
+                // a timeout value of -1 means reads will not timeout
+                // see http://stackoverflow.com/questions/18072407/php-redis-timeout-read-error-on-connection
                 $this->redis->setOption(Redis::OPT_READ_TIMEOUT, $timeout);
             }
         }
