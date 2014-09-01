@@ -266,6 +266,11 @@ class Credis_Client {
      * @var array
      */
     protected $renamedCommands;
+    
+    /**
+     * @var string
+     */
+    protected $extensionVersion;
 
     /**
      * Creates a Redisent connection to the Redis server on host {@link $host} and port {@link $port}.
@@ -288,6 +293,11 @@ class Credis_Client {
         $this->authPassword = $password;
         $this->selectedDb = (int)$db;
         $this->convertHost();
+        
+        if (!$this->standalone) {
+            $redisReflection = new ReflectionExtension('redis');
+            $this->extensionVersion = $redisReflection->getVersion();
+        }
     }
 
     public function __destruct()
@@ -927,8 +937,7 @@ class Credis_Client {
                 case 'eval':
                 case 'evalsha':
                 case 'script':
-                    $error = $this->redis->getLastError();
-                    $this->redis->clearLastError();
+                    $error = $this->read_last_error();
                     if ($error && substr($error,0,8) == 'NOSCRIPT') {
                         $response = NULL;
                     } else if ($error) {
@@ -936,8 +945,7 @@ class Credis_Client {
                     }
                     break;
                 default:
-                    $error = $this->redis->getLastError();
-                    $this->redis->clearLastError();
+                    $error = $this->read_last_error();
                     if ($error) {
                         throw new CredisException($error);
                     }
@@ -1075,6 +1083,15 @@ class Credis_Client {
         }
 
         return $response;
+    }
+    
+    protected function read_last_error()
+    {
+        $error = $this->redis->getLastError();
+        if (version_compare($this->extensionVersion, '2.2.3', '>=')) {
+            $this->redis->clearLastError();
+        }
+        return $error;
     }
 
     /**
