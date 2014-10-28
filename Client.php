@@ -35,6 +35,7 @@ class CredisException extends Exception
     {
         if ($exception && get_class($exception) == 'RedisException' && $message == 'read error on connection') {
             $code = CredisException::CODE_DISCONNECTED;
+            http_response_code(500);
         }
         parent::__construct($message, $code, $exception);
     }
@@ -422,6 +423,7 @@ class Credis_Client {
             }
             $failures = $this->connectFailures;
             $this->connectFailures = 0;
+            http_response_code(500);
             throw new CredisException("Connection to Redis failed after $failures failures." . (isset($errno) && isset($errstr) ? "Last Error : ({$errno}) {$errstr}" : ""));
         }
 
