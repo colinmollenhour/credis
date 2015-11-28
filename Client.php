@@ -65,10 +65,10 @@ class CredisException extends Exception
  * @method array         sort(string $key, string $arg1, string $valueN = null)
  * @method int           ttl(string $key)
  * @method string        type(string $key)
- * @method bool|array    scan(int &$iterator, string $pattern = null, int count = null)
- * @method bool|array    sscan(int &$iterator, string $pattern = null, int count = null)
- * @method bool|array    hscan(int &$iterator, string $pattern = null, int count = null)
- * @method bool|array    zscan(int &$iterator, string $pattern = null, int count = null)
+ * @method bool|array    scan(int &$iterator, string $pattern = null, int $count = null)
+ * @method bool|array    sscan(int &$iterator, string $pattern = null, int $count = null)
+ * @method bool|array    hscan(int &$iterator, string $pattern = null, int $count = null)
+ * @method bool|array    zscan(int &$iterator, string $pattern = null, int $count = null)
  *
  * Scalars:
  * @method int           append(string $key, string $value)
@@ -607,7 +607,6 @@ class Credis_Client {
     }
     
     /**
-     * @param string|array $pattern
      * @return array
      */
     public function pUnsubscribe()
@@ -620,7 +619,7 @@ class Credis_Client {
     /**
      * @param int $Iterator
      * @param string $pattern
-     * @param int $Iterator
+     * @param int $count
      * @return bool | Array
      */    
     public function scan(&$Iterator, $pattern = null, $count = null)
@@ -631,7 +630,7 @@ class Credis_Client {
     /**
      * @param int $Iterator
      * @param string $pattern
-     * @param int $Iterator
+     * @param int $count
      * @return bool | Array
      */    
     public function hscan(&$Iterator, $pattern = null, $count = null)
@@ -642,7 +641,7 @@ class Credis_Client {
     /**
      * @param int $Iterator
      * @param string $pattern
-     * @param int $Iterator
+     * @param int $count
      * @return bool | Array
      */    
     public function sscan(&$Iterator, $pattern = null, $count = null)
@@ -653,7 +652,7 @@ class Credis_Client {
     /**
      * @param int $Iterator
      * @param string $pattern
-     * @param int $Iterator
+     * @param int $count
      * @return bool | Array
      */    
     public function zscan(&$Iterator, $pattern = null, $count = null)
@@ -710,7 +709,6 @@ class Credis_Client {
     }
 
     /**
-     * @param string|array $pattern
      * @return array
      */
     public function unsubscribe()
@@ -1055,7 +1053,7 @@ class Credis_Client {
             // Wrap exceptions
             catch(RedisException $e) {
                 $code = 0;
-                if ( ! ($result = $this->redis->IsConnected())) {
+                if ( ! ($result = $this->redis->ping())) {
                     $this->connected = FALSE;
                     $code = CredisException::CODE_DISCONNECTED;
                 }
@@ -1261,7 +1259,8 @@ class Credis_Client {
      * becomes
      *  array('zrangebyscore', '-inf', 123, 'limit', '0', '1')
      *
-     * @param array $in
+     * @param array $arguments
+     * @param array &$out
      * @return array
      */
     private static function _flattenArguments(array $arguments, &$out = array())
