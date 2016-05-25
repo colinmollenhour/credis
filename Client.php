@@ -1123,7 +1123,7 @@ class Credis_Client {
     protected function write_command($command)
     {
         // Reconnect on lost connection (Redis server "timeout" exceeded since last command)
-        if(feof($this->redis)) {
+        if (($this->standalone && !is_resource($this->redis)) || feof($this->redis)) {
             $this->close();
             // If a watch or transaction was in progress and connection was lost, throw error rather than reconnect
             // since transaction/watch state will be lost.
