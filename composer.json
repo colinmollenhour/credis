@@ -1,5 +1,6 @@
 {
 	"name": "studentIvan/credis",
+	"version": "1.7.777",
 	"type": "library",
 	"description": "Credis is a lightweight interface to the Redis key-value store which wraps the phpredis library when available for better performance.",
 	"homepage": "https://github.com/studentIvan/credis",
