@@ -338,6 +338,15 @@ class Credis_Client {
     }
 
     /**
+     * Return the \Redis instance
+     * @return \Redis
+     */
+    public function getRedis()
+    {
+        return $this->redis;
+    }
+
+    /**
      * Return the selected database
      * @return int
      */
