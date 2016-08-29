@@ -175,7 +175,9 @@ class Credis_Sentinel
             }
         }
         $clients[] = array('host'=>$master[3],'port'=>$master[5], 'db'=>$db ,'master'=>true,'write_only'=>$writeOnly,'password'=>$this->_authPassword);
-        return new Credis_Cluster($clients,$replicas,$this->_standAlone);
+        $cluster = new Credis_Cluster($clients,$replicas,$this->_standAlone);
+        $cluster->select($db);
+        return $cluster;
     }
 
     /**
@@ -189,10 +191,10 @@ class Credis_Sentinel
      */
     public function getCluster($name, $db=0, $replicas=128, $selectRandomSlave=true, $writeOnly=false)
     {
-        if(!isset($this->_cluster[$name])){
-            $this->_cluster[$name] = $this->createCluster($name, $db, $replicas, $selectRandomSlave, $writeOnly);
+        if(!isset($this->_cluster[$name][$db])){
+            $this->_cluster[$name][$db] = $this->createCluster($name, $db, $replicas, $selectRandomSlave, $writeOnly);
         }
-        return $this->_cluster[$name];
+        return $this->_cluster[$name][$db];
     }
 
     /**
