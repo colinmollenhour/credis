@@ -29,7 +29,7 @@ class CredisStandaloneTest extends CredisTest
       $this->assertEquals('value',$this->credis->get('key'));
   }
 
-    public function testPersistentvsNonPersistent() {}
+    public function testPersistentvsNonPersistent() {$this->assertTrue(true);}
 
     public function testStandAloneArgumentsExtra()
     {
