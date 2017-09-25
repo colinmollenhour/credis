@@ -326,7 +326,7 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(array(), $this->credis->pipeline()->exec());
     }
 
-    public function testPipelineTransaction()
+    public function testPipelineMulti()
     {
         $config = $this->credis->config('GET', '*');
         $this->assertEquals($config, $this->credis->pipeline()->multi()->config('GET', '*')->exec()[0]);
@@ -334,6 +334,24 @@ class CredisTest extends CredisTestCommon
         $this->credis->pipeline()->multi();
         $this->pipelineTestInternal();
         $this->assertEquals(array(), $this->credis->pipeline()->multi()->exec());
+    }
+
+    public function testWatchMultiUnwatch()
+    {
+        $this->assertTrue($this->credis->watch('foo', 'bar'));
+
+        $reply = $this->credis->pipeline()
+                              ->multi()
+                              ->set('foo', 1)
+                              ->set('bar', 1)
+                              ->exec();
+        $this->assertEquals(
+            array(
+                true,
+                true,
+            ), $reply
+        );
+        $this->assertTrue($this->credis->unwatch());
     }
 
     protected function pipelineTestInternal()

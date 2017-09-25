@@ -47,6 +47,8 @@ class CredisException extends Exception
  * Server/Connection:
  * @method Credis_Client               pipeline()
  * @method Credis_Client               multi()
+ * @method Credis_Client               watch(string ...$keys)
+ * @method Credis_Client               unwatch()
  * @method array                       exec()
  * @method string|Credis_Client        flushAll()
  * @method string|Credis_Client        flushDb()
@@ -1204,7 +1206,7 @@ class Credis_Client {
             // If a watch or transaction was in progress and connection was lost, throw error rather than reconnect
             // since transaction/watch state will be lost.
             if(($this->isMulti && ! $this->usePipeline) || $this->isWatching) {
-                $this->isMulti = $this->isWatching = FALSE;
+                $this->close(true);
                 throw new CredisException('Lost connection to Redis server during watch or transaction.');
             }
             $this->close(true);
