@@ -243,51 +243,28 @@ class CredisTest extends CredisTestCommon
 
     public function testPipeline()
     {
-        $longString = str_repeat(md5('asd') . "\r\n", 500);
-        $reply = $this->credis->pipeline()
-                              ->set('a', 123)
-                              ->get('a')
-                              ->sAdd('b', 123)
-                              ->sMembers('b')
-                              ->set('empty', '')
-                              ->get('empty')
-                              ->set('big', $longString)
-                              ->get('big')
-                              ->hset('hash', 'field1', 1)
-                              ->hset('hash', 'field2', 2)
-                              ->hgetall('hash')
-                              ->hmget('hash', array('field1', 'field3'))
-                              ->exec();
-        $this->assertEquals(
-            array(
-                true,               // set('a', 123)
-                123,                // get('a')
-                1,                  // sAdd('b', 123)
-                array(123),         // sMembers('b')
-                true,               // set('empty', '')
-                '',                 // get('empty')
-                true,               // set('big', $longString)
-                $longString,        // get('big')
-                true,               // hset('hash', 'field1', 1)
-                true,               // hset('hash', 'field2', 2)
-                array(              // hgetall('hash')
-                    'field1' => 1,
-                    'field2' => 2,
-                ),
-                array(              // hmget('hash', array('field1', 'field3'))
-                    'field1' => 1,
-                    'field3' => false,
-                ),
-            ), $reply
-        );
+        $config = $this->credis->config('GET', '*');
+        $this->assertEquals($config, $this->credis->pipeline()->config('GET', '*')->exec()[0]);
 
+        $this->credis->pipeline();
+        $this->pipelineTestInternal();
         $this->assertEquals(array(), $this->credis->pipeline()->exec());
     }
 
     public function testPipelineTransaction()
     {
+        $config = $this->credis->config('GET', '*');
+        $this->assertEquals($config, $this->credis->pipeline()->multi()->config('GET', '*')->exec()[0]);
+
+        $this->credis->pipeline()->multi();
+        $this->pipelineTestInternal();
+        $this->assertEquals(array(), $this->credis->pipeline()->multi()->exec());
+    }
+
+    protected function pipelineTestInternal()
+    {
         $longString = str_repeat(md5('asd') . "\r\n", 500);
-        $reply = $this->credis->pipeline()->multi()
+        $reply = $this->credis
                               ->set('a', 123)
                               ->get('a')
                               ->sAdd('b', 123)
@@ -300,19 +277,27 @@ class CredisTest extends CredisTestCommon
                               ->hset('hash', 'field2', 2)
                               ->hgetall('hash')
                               ->hmget('hash', array('field1', 'field3'))
+                              ->zadd('sortedSet', 1, 'member1')
+                              ->zadd('sortedSet', 2, 'member2')
+                              ->zadd('sortedSet', 3, 'member3')
+                              ->zcard('sortedSet')
+                              ->zrangebyscore('sortedSet', 1, 2)
+                              ->zrangebyscore('sortedSet', 1, 2, array('withscores' => true))
+                              ->zrevrangebyscore('sortedSet', 2, 1)
+                              ->zrevrangebyscore('sortedSet', 2, 1, array('withscores' => true))
                               ->exec();
         $this->assertEquals(
             array(
                 true,               // set('a', 123)
-                123,                // get('a')
+                '123',              // get('a')
                 1,                  // sAdd('b', 123)
                 array(123),         // sMembers('b')
                 true,               // set('empty', '')
                 '',                 // get('empty')
                 true,               // set('big', $longString)
                 $longString,        // get('big')
-                true,               // hset('hash', 'field1', 1)
-                true,               // hset('hash', 'field2', 2)
+                1,               // hset('hash', 'field1', 1)
+                1,               // hset('hash', 'field2', 2)
                 array(              // hgetall('hash')
                     'field1' => 1,
                     'field2' => 2,
@@ -321,10 +306,28 @@ class CredisTest extends CredisTestCommon
                     'field1' => 1,
                     'field3' => false,
                 ),
+                1,               // zadd('sortedSet', 1, 'member1')
+                1,               // zadd('sortedSet', 2, 'member2')
+                1,               // zadd('sortedSet', 3, 'member3')
+                3,                  // zcard('sortedSet')
+                array(              // zrangebyscore('sortedSet', 1, 2)
+                    'member1',
+                    'member2',
+                ),
+                array(              // zrangebyscore('sortedSet', 1, 2, array('withscores' => TRUE))
+                    'member1' => 1.0,
+                    'member2' => 2.0,
+                ),
+                array(              // zrevrangebyscore('sortedSet', 1, 2)
+                    'member2',
+                    'member1',
+                ),
+                array(              // zrevrangebyscore('sortedSet', 1, 2, array('withscores' => TRUE))
+                    'member1' => 1.0,
+                    'member2' => 2.0,
+                ),
             ), $reply
         );
-
-        $this->assertEquals(array(), $this->credis->pipeline()->exec());
     }
 
     public function testTransaction()
