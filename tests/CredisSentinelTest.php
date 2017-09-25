@@ -172,7 +172,7 @@ class CredisSentinelTest extends CredisTestCommon
       $host = 'localhost';
       $port = '123456';
 
-      $client = $this->getMock('\Credis_Client');
+      $client = $this->createMock('\Credis_Client');
       $sentinel = new Credis_Sentinel($client);
 
       $client->expects($this->once())->method('getHost')->willReturn($host);
