@@ -506,7 +506,7 @@ class CredisTest extends CredisTestCommon
             }
         }
         $timeout = 2;
-        $time = time();
+        $time = microtime(true);
         $this->credis->setReadTimeout($timeout);
         try {
             $testCase = $this;
@@ -517,7 +517,7 @@ class CredisTest extends CredisTestCommon
             });
             $this->fail('pSubscribe should not return.');
         } catch (CredisException $e) {
-            $this->assertEquals($timeout, time() - $time);
+            $this->assertEquals($timeout, intval(microtime(true) - $time));
             if ($this->useStandalone) { // phpredis does not distinguish between timed out and disconnected
                 $this->assertEquals($e->getCode(), CredisException::CODE_TIMED_OUT);
             } else {
@@ -527,7 +527,7 @@ class CredisTest extends CredisTestCommon
 
         // Perform a new subscription. Client should have either unsubscribed or disconnected
         $timeout = 2;
-        $time = time();
+        $time = microtime(true);
         $this->credis->setReadTimeout($timeout);
         try {
             $testCase = $this;
@@ -538,7 +538,7 @@ class CredisTest extends CredisTestCommon
             });
             $this->fail('subscribe should not return.');
         } catch (CredisException $e) {
-            $this->assertEquals($timeout, time() - $time);
+            $this->assertEquals($timeout, intval(microtime(true) - $time));
             if ($this->useStandalone) { // phpredis does not distinguish between timed out and disconnected
                 $this->assertEquals($e->getCode(), CredisException::CODE_TIMED_OUT);
             } else {
