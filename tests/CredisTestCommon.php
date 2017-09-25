@@ -52,6 +52,7 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
                     exec('kill '.$pid);
                 }
             }
+            sleep(1); // give teardown some time to finish
             @unlink('dump.rdb');
             @unlink('redis-master.conf');
             @unlink('redis-slave.conf');
