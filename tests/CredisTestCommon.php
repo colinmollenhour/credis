@@ -46,24 +46,23 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
 
                 return;
             }
+
             $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
             $slaveConfig->forceStandalone();
             // wait for replication initialization
             while (true)
             {
-                $info = $slaveConfig->info('replication');
-                if ($info['role'] === 'master')
+                usleep(100);
+                $role = $slaveConfig->role();
+                if ($role[0] !== 'slave')
                 {
-                    $this->markTestSkipped('slave config points to a master');
-
+                    $this->markTestSkipped('slave config does not points to a slave');
                     return;
                 }
-                if ($info['master_link_status'] === 'up' && $info['master_sync_in_progress'] === '0')
+                if ($role[3] === 'connected')
                 {
-                    usleep(200);
                     break;
                 }
-                usleep(500);
             }
         }
 
