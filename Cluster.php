@@ -334,7 +334,7 @@ class Credis_Cluster
 
   public function isReadOnlyCommand($command)
   {
-      return isset(static::readOnlyCommands[strtoupper($command)]);
+      return array_key_exists(strtoupper($command), static::readOnlyCommands);
   }
 }
 
