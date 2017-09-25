@@ -1,11 +1,77 @@
 <?php
 // backward compatibility (https://stackoverflow.com/a/42828632/187780)
 if (!class_exists('\PHPUnit\Framework\TestCase') && class_exists('\PHPUnit_Framework_TestCase')) {
-    class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
+    //class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
 }
 
 class CredisTestCommon extends \PHPUnit\Framework\TestCase
 {
+    protected $useStandalone = false;
+    protected $delayForSlave = false;
+    protected $redisConfig = null;
+    protected $slaveConfig = null;
+
+    protected function setUp()
+    {
+        if ($this->redisConfig === null)
+        {
+            $configFile = dirname(__FILE__) . '/redis_config.json';
+            if (!file_exists($configFile) || !($config = file_get_contents($configFile)))
+            {
+                $this->markTestSkipped('Could not load ' . $configFile);
+
+                return;
+            }
+            $this->redisConfig = json_decode($config);
+            $arrayConfig = array();
+            foreach ($this->redisConfig as $config)
+            {
+                $arrayConfig[] = (array)$config;
+            }
+            $this->redisConfig = $arrayConfig;
+        }
+        if ($this->delayForSlave && $this->slaveConfig === null)
+        {
+            foreach ($this->redisConfig as $config)
+            {
+                if ($config['alias'] === 'slave')
+                {
+                    $this->slaveConfig = $config;
+                    break;
+                }
+            }
+            if ($this->slaveConfig === null)
+            {
+                $this->markTestSkipped('Could not load slave config');
+
+                return;
+            }
+            $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
+            $slaveConfig->forceStandalone();
+            // wait for replication initialization
+            while (true)
+            {
+                $info = $slaveConfig->info('replication');
+                if ($info['role'] === 'master')
+                {
+                    $this->markTestSkipped('slave config points to a master');
+
+                    return;
+                }
+                if ($info['master_link_status'] === 'up' && $info['master_sync_in_progress'] === '0')
+                {
+                    usleep(200);
+                    break;
+                }
+                usleep(500);
+            }
+        }
+
+        if($this->useStandalone && !extension_loaded('redis')) {
+            $this->fail('The Redis extension is not loaded.');
+        }
+    }
+
     public static function setUpBeforeClass()
     {
         if(preg_match('/^WIN/',strtoupper(PHP_OS))){
@@ -32,7 +98,7 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
             copy('redis-sentinel.conf','redis-sentinel.conf.bak');
             exec('redis-sentinel redis-sentinel.conf');
             // wait for redis to initialize
-            sleep(1);
+            usleep(200);
         }
     }
 

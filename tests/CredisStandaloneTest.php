@@ -4,7 +4,6 @@ require_once dirname(__FILE__).'/CredisTest.php';
 
 class CredisStandaloneTest extends CredisTest
 {
-
     protected $useStandalone = TRUE;
 
   /**
@@ -23,7 +22,7 @@ class CredisStandaloneTest extends CredisTest
   public function testPersistentConnectionsOnStandAloneTcpConnection()
   {
       $this->credis->close();
-      $this->credis = new Credis_Client('tcp://'.$this->config[0]->host.':'.$this->config[0]->port.'/persistent');
+      $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/persistent');
       $this->credis->forceStandalone();
       $this->credis->set('key','value');
       $this->assertEquals('value',$this->credis->get('key'));
