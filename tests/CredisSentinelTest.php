@@ -13,6 +13,7 @@ class CredisSentinelTest extends CredisTestCommon
 
   protected $sentinelConfig;
   protected $redisConfig;
+  protected $slaveConfig;
 
   protected $useStandalone = FALSE;
 
@@ -39,6 +40,39 @@ class CredisSentinelTest extends CredisTestCommon
             $arrayConfig[] = (array)$config;
         }
         $this->redisConfig = $arrayConfig;
+    }
+    if ($this->slaveConfig === null)
+    {
+        foreach($this->redisConfig as $config)
+        {
+            if ($config['alias'] === 'slave')
+            {
+                $this->slaveConfig = $config;
+                break;
+            }
+        }
+        if ($this->slaveConfig === null)
+        {
+            $this->markTestSkipped('Could not load slave config');
+            return;
+        }
+        $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
+        $slaveConfig->forceStandalone();
+        // wait for replication initialization
+        while(true)
+        {
+            $info = $slaveConfig->info('replication');
+            if ($info['role'] === 'master')
+            {
+                $this->markTestSkipped('slave config points to a master');
+                return;
+            }
+            if ($info['master_link_status'] === 'up' && $info['master_sync_in_progress'] === '0')
+            {
+                break;
+            }
+            usleep(500);
+        }
     }
     $sentinelClient = new Credis_Client($this->sentinelConfig->host, $this->sentinelConfig->port);
     $this->sentinel = new Credis_Sentinel($sentinelClient);
