@@ -31,19 +31,19 @@ class Credis_Cluster
    * @var array
    */
   protected $aliases;
-  
+
   /**
    * Hash ring of Redis server nodes
    * @var array
    */
   protected $ring;
-  
+
   /**
    * Individual nodes of pointers to Redis servers on the hash ring
    * @var array
    */
   protected $nodes;
-  
+
   /**
    * The commands that are not subject to hashing
    * @var array
@@ -276,64 +276,65 @@ class Credis_Cluster
     return $this->ring[$server];
   }
 
+  const readOnlyCommands = array(
+    'DBSIZE' => true,
+    'INFO' => true,
+    'MONITOR' => true,
+    'EXISTS' => true,
+    'TYPE' => true,
+    'KEYS' => true,
+    'SCAN' => true,
+    'RANDOMKEY' => true,
+    'TTL' => true,
+    'GET' => true,
+    'MGET' => true,
+    'SUBSTR' => true,
+    'STRLEN' => true,
+    'GETRANGE' => true,
+    'GETBIT' => true,
+    'LLEN' => true,
+    'LRANGE' => true,
+    'LINDEX' => true,
+    'SCARD' => true,
+    'SISMEMBER' => true,
+    'SINTER' => true,
+    'SUNION' => true,
+    'SDIFF' => true,
+    'SMEMBERS' => true,
+    'SSCAN' => true,
+    'SRANDMEMBER' => true,
+    'ZRANGE' => true,
+    'ZREVRANGE' => true,
+    'ZRANGEBYSCORE' => true,
+    'ZREVRANGEBYSCORE' => true,
+    'ZCARD' => true,
+    'ZSCORE' => true,
+    'ZCOUNT' => true,
+    'ZRANK' => true,
+    'ZREVRANK' => true,
+    'ZSCAN' => true,
+    'HGET' => true,
+    'HMGET' => true,
+    'HEXISTS' => true,
+    'HLEN' => true,
+    'HKEYS' => true,
+    'HVALS' => true,
+    'HGETALL' => true,
+    'HSCAN' => true,
+    'PING' => true,
+    'AUTH' => true,
+    'SELECT' => true,
+    'ECHO' => true,
+    'QUIT' => true,
+    'OBJECT' => true,
+    'BITCOUNT' => true,
+    'TIME' => true,
+    'SORT' => true,
+    );
+
   public function isReadOnlyCommand($command)
   {
-      $readOnlyCommands = array(
-          'DBSIZE',
-          'INFO',
-          'MONITOR',
-          'EXISTS',
-          'TYPE',
-          'KEYS',
-          'SCAN',
-          'RANDOMKEY',
-          'TTL',
-          'GET',
-          'MGET',
-          'SUBSTR',
-          'STRLEN',
-          'GETRANGE',
-          'GETBIT',
-          'LLEN',
-          'LRANGE',
-          'LINDEX',
-          'SCARD',
-          'SISMEMBER',
-          'SINTER',
-          'SUNION',
-          'SDIFF',
-          'SMEMBERS',
-          'SSCAN',
-          'SRANDMEMBER',
-          'ZRANGE',
-          'ZREVRANGE',
-          'ZRANGEBYSCORE',
-          'ZREVRANGEBYSCORE',
-          'ZCARD',
-          'ZSCORE',
-          'ZCOUNT',
-          'ZRANK',
-          'ZREVRANK',
-          'ZSCAN',
-          'HGET',
-          'HMGET',
-          'HEXISTS',
-          'HLEN',
-          'HKEYS',
-          'HVALS',
-          'HGETALL',
-          'HSCAN',
-          'PING',
-          'AUTH',
-          'SELECT',
-          'ECHO',
-          'QUIT',
-          'OBJECT',
-          'BITCOUNT',
-          'TIME',
-          'SORT'
-      );
-      return in_array(strtoupper($command),$readOnlyCommands);
+      return isset(static::readOnlyCommands[strtoupper($command)]);
   }
 }
 
