@@ -52,7 +52,7 @@ class CredisException extends Exception
  * @method array                       exec()
  * @method string|Credis_Client        flushAll()
  * @method string|Credis_Client        flushDb()
- * @method array|Credis_Client         info(string $section)
+ * @method array|Credis_Client         info(string $section = null)
  * @method bool|array|Credis_Client    config(string $setGet, string $key, string $value = null)
  * @method array|Credis_Client         role()
  * @method array|Credis_Client         time()
