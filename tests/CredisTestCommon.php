@@ -52,7 +52,6 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
             // wait for replication initialization
             while (true)
             {
-                usleep(100);
                 $role = $slaveConfig->role();
                 if ($role[0] !== 'slave')
                 {
@@ -63,6 +62,7 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
                 {
                     break;
                 }
+                usleep(100);
             }
         }
 
