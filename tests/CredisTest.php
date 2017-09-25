@@ -139,6 +139,49 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(1, $this->credis->zAdd('myset', 10, 'And'));
         $this->assertEquals(1, $this->credis->zAdd('myset', 11, 'Goodbye'));
 
+        $this->assertEquals(4, count($this->credis->zRange('myset', 0, 4)));
+        $this->assertEquals(2, count($this->credis->zRange('myset', 0, 1)));
+
+        $range = $this->credis->zRange('myset', 1, 2);
+        $this->assertEquals(2, count($range));
+        $this->assertEquals('World', $range[0]);
+        $this->assertEquals('And', $range[1]);
+
+        $range = $this->credis->zRange('myset', 1, 2, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2.123, $range['World']);
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+
+        // withscores-option is off
+        $range = $this->credis->zRange('myset', 0, 4, array('withscores'));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRange('myset', 0, 4, array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
+        $this->assertEquals(4, count($this->credis->zRevRange('myset', 0, 4)));
+        $this->assertEquals(2, count($this->credis->zRevRange('myset', 0, 1)));
+
+        $range = $this->credis->zRevRange('myset', 0, 1, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertEquals(11, $range['Goodbye']);
+
+        // withscores-option is off
+        $range = $this->credis->zRevRange('myset', 0, 4, array('withscores'));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRevRange('myset', 0, 4, array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
         $this->assertEquals(4, count($this->credis->zRangeByScore('myset', '-inf', '+inf')));
         $this->assertEquals(2, count($this->credis->zRangeByScore('myset', '1', '9')));
 
@@ -169,6 +212,38 @@ class CredisTest extends CredisTestCommon
         $range = $this->credis->zRangeByScore('myset', '-inf', '+inf', array('withscores' => false));
         $this->assertEquals(4, count($range));
         $this->assertEquals(range(0, 3), array_keys($range));
+
+        $this->assertEquals(4, count($this->credis->zRevRangeByScore('myset', '+inf', '-inf')));
+        $this->assertEquals(2, count($this->credis->zRevRangeByScore('myset', '9', '1')));
+
+        $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertEquals('World', $range[1]);
+        $this->assertEquals('And', $range[0]);
+
+        $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores' => true, 'limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2.123, $range['World']);
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+
+        $range = $this->credis->zRevRangeByScore('myset', '+inf',10, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertEquals(11, $range['Goodbye']);
+
+        // withscores-option is off
+        $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores'));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
 
         // testing zunionstore (intersection of sorted sets)
         $this->credis->zAdd('myset1', 10, 'key1');
@@ -265,27 +340,31 @@ class CredisTest extends CredisTestCommon
     {
         $longString = str_repeat(md5('asd') . "\r\n", 500);
         $reply = $this->credis
-                              ->set('a', 123)
-                              ->get('a')
-                              ->sAdd('b', 123)
-                              ->sMembers('b')
-                              ->set('empty', '')
-                              ->get('empty')
-                              ->set('big', $longString)
-                              ->get('big')
-                              ->hset('hash', 'field1', 1)
-                              ->hset('hash', 'field2', 2)
-                              ->hgetall('hash')
-                              ->hmget('hash', array('field1', 'field3'))
-                              ->zadd('sortedSet', 1, 'member1')
-                              ->zadd('sortedSet', 2, 'member2')
-                              ->zadd('sortedSet', 3, 'member3')
-                              ->zcard('sortedSet')
-                              ->zrangebyscore('sortedSet', 1, 2)
-                              ->zrangebyscore('sortedSet', 1, 2, array('withscores' => true))
-                              ->zrevrangebyscore('sortedSet', 2, 1)
-                              ->zrevrangebyscore('sortedSet', 2, 1, array('withscores' => true))
-                              ->exec();
+            ->set('a', 123)
+            ->get('a')
+            ->sAdd('b', 123)
+            ->sMembers('b')
+            ->set('empty', '')
+            ->get('empty')
+            ->set('big', $longString)
+            ->get('big')
+            ->hset('hash', 'field1', 1)
+            ->hset('hash', 'field2', 2)
+            ->hgetall('hash')
+            ->hmget('hash', array('field1', 'field3'))
+            ->zadd('sortedSet', 1, 'member1')
+            ->zadd('sortedSet', 2, 'member2')
+            ->zadd('sortedSet', 3, 'member3')
+            ->zcard('sortedSet')
+            ->zrangebyscore('sortedSet', 1, 2)
+            ->zrangebyscore('sortedSet', 1, 2, array('withscores' => true))
+            ->zrevrangebyscore('sortedSet', 2, 1)
+            ->zrevrangebyscore('sortedSet', 2, 1, array('withscores' => true))
+            ->zrange('sortedSet', 0, 1)
+            ->zrange('sortedSet', 0, 1, array('withscores' => true))
+            ->zrevrange('sortedSet', 0, 1)
+            ->zrevrange('sortedSet', 0, 1, array('withscores' => true))
+            ->exec();
         $this->assertEquals(
             array(
                 true,               // set('a', 123)
@@ -296,8 +375,8 @@ class CredisTest extends CredisTestCommon
                 '',                 // get('empty')
                 true,               // set('big', $longString)
                 $longString,        // get('big')
-                1,               // hset('hash', 'field1', 1)
-                1,               // hset('hash', 'field2', 2)
+                1,                  // hset('hash', 'field1', 1)
+                1,                  // hset('hash', 'field2', 2)
                 array(              // hgetall('hash')
                     'field1' => 1,
                     'field2' => 2,
@@ -306,9 +385,9 @@ class CredisTest extends CredisTestCommon
                     'field1' => 1,
                     'field3' => false,
                 ),
-                1,               // zadd('sortedSet', 1, 'member1')
-                1,               // zadd('sortedSet', 2, 'member2')
-                1,               // zadd('sortedSet', 3, 'member3')
+                1,                  // zadd('sortedSet', 1, 'member1')
+                1,                  // zadd('sortedSet', 2, 'member2')
+                1,                  // zadd('sortedSet', 3, 'member3')
                 3,                  // zcard('sortedSet')
                 array(              // zrangebyscore('sortedSet', 1, 2)
                     'member1',
@@ -324,6 +403,22 @@ class CredisTest extends CredisTestCommon
                 ),
                 array(              // zrevrangebyscore('sortedSet', 1, 2, array('withscores' => TRUE))
                     'member1' => 1.0,
+                    'member2' => 2.0,
+                ),
+                array(              // zrangebyscore('sortedSet', 1, 2)
+                    'member1',
+                    'member2',
+                ),
+                array(              // zrangebyscore('sortedSet', 1, 2, array('withscores' => TRUE))
+                    'member1' => 1.0,
+                    'member2' => 2.0,
+                ),
+                array(              // zrevrangebyscore('sortedSet', 1, 2)
+                    'member3',
+                    'member2',
+                ),
+                array(              // zrevrangebyscore('sortedSet', 1, 2, array('withscores' => TRUE))
+                    'member3' => 3.0,
                     'member2' => 2.0,
                 ),
             ), $reply

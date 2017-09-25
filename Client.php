@@ -1036,9 +1036,16 @@ class Credis_Client {
                 case 'del':
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
+                   break;
                 case 'zrange':
                 case 'zrevrange':
-                   break;
+                    if (isset($args[3]) && is_array($args[3]))
+                    {
+                        $cArgs = $args[3];
+                        $args[3] = !empty($cArgs['withscores']);
+                    }
+                    $args = self::_flattenArguments($args);
+                    break;
                 case 'zunionstore':
                     $cArgs = array();
                     $cArgs[] = array_shift($args); // destination
