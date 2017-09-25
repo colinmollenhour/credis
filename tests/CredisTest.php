@@ -500,7 +500,6 @@ class CredisTest extends CredisTestCommon
     {
         if (!$this->useStandalone && version_compare(PHP_VERSION, '7.0.0') >= 0) {
             $ext = new ReflectionExtension('redis');
-            var_dump($ext->getVersion());
             if (version_compare($ext->getVersion(), '3.1.4RC1') < 0) {
                 $this->fail('phpredis 3.1.4 is required for subscribe/pSubscribe not to segfault with php 7.x');
                 return;
