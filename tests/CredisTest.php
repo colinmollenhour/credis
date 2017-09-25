@@ -223,6 +223,17 @@ class CredisTest extends CredisTestCommon
         $longString = str_repeat(md5('asd'), 4096); // 128k (redis.h REDIS_INLINE_MAX_SIZE = 64k)
         $this->assertEquals(1, $this->credis->hMSet('long_hash', array('count' => 1, 'data' => $longString)), 'Set long hash value');
         $this->assertEquals($longString, $this->credis->hGet('long_hash', 'data'), 'Get long hash value');
+
+        // in piplining mode
+        $this->assertTrue($this->credis->hMSet('hash', array('field1' => 'foo', 'field2' => 'Hello')));
+
+        $this->credis->pipeline();
+        $this->assertTrue($this->credis === $this->credis->hMGet('hash', array('field1','field2','nilfield')));
+        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => FALSE)), $this->credis->exec());
+
+        $this->credis->pipeline()->multi();
+        $this->assertTrue($this->credis === $this->credis->hMGet('hash', array('field1','field2','nilfield')));
+        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => FALSE)), $this->credis->exec());
     }
 
     public function testFalsey()
@@ -232,20 +243,86 @@ class CredisTest extends CredisTestCommon
 
     public function testPipeline()
     {
-        $longString = str_repeat(md5('asd')."\r\n", 500);
+        $longString = str_repeat(md5('asd') . "\r\n", 500);
         $reply = $this->credis->pipeline()
-                ->set('a', 123)
-                ->get('a')
-                ->sAdd('b', 123)
-                ->sMembers('b')
-                ->set('empty','')
-                ->get('empty')
-                ->set('big', $longString)
-                ->get('big')
-                ->exec();
-        $this->assertEquals(array(
-            TRUE, 123, 1, array(123), TRUE, '', TRUE, $longString
-        ), $reply);
+                              ->set('a', 123)
+                              ->get('a')
+                              ->sAdd('b', 123)
+                              ->sMembers('b')
+                              ->set('empty', '')
+                              ->get('empty')
+                              ->set('big', $longString)
+                              ->get('big')
+                              ->hset('hash', 'field1', 1)
+                              ->hset('hash', 'field2', 2)
+                              ->hgetall('hash')
+                              ->hmget('hash', array('field1', 'field3'))
+                              ->exec();
+        $this->assertEquals(
+            array(
+                true,               // set('a', 123)
+                123,                // get('a')
+                1,                  // sAdd('b', 123)
+                array(123),         // sMembers('b')
+                true,               // set('empty', '')
+                '',                 // get('empty')
+                true,               // set('big', $longString)
+                $longString,        // get('big')
+                true,               // hset('hash', 'field1', 1)
+                true,               // hset('hash', 'field2', 2)
+                array(              // hgetall('hash')
+                    'field1' => 1,
+                    'field2' => 2,
+                ),
+                array(              // hmget('hash', array('field1', 'field3'))
+                    'field1' => 1,
+                    'field3' => false,
+                ),
+            ), $reply
+        );
+
+        $this->assertEquals(array(), $this->credis->pipeline()->exec());
+    }
+
+    public function testPipelineTransaction()
+    {
+        $longString = str_repeat(md5('asd') . "\r\n", 500);
+        $reply = $this->credis->pipeline()->multi()
+                              ->set('a', 123)
+                              ->get('a')
+                              ->sAdd('b', 123)
+                              ->sMembers('b')
+                              ->set('empty', '')
+                              ->get('empty')
+                              ->set('big', $longString)
+                              ->get('big')
+                              ->hset('hash', 'field1', 1)
+                              ->hset('hash', 'field2', 2)
+                              ->hgetall('hash')
+                              ->hmget('hash', array('field1', 'field3'))
+                              ->exec();
+        $this->assertEquals(
+            array(
+                true,               // set('a', 123)
+                123,                // get('a')
+                1,                  // sAdd('b', 123)
+                array(123),         // sMembers('b')
+                true,               // set('empty', '')
+                '',                 // get('empty')
+                true,               // set('big', $longString)
+                $longString,        // get('big')
+                true,               // hset('hash', 'field1', 1)
+                true,               // hset('hash', 'field2', 2)
+                array(              // hgetall('hash')
+                    'field1' => 1,
+                    'field2' => 2,
+                ),
+                array(              // hmget('hash', array('field1', 'field3'))
+                    'field1' => 1,
+                    'field3' => false,
+                ),
+            ), $reply
+        );
 
         $this->assertEquals(array(), $this->credis->pipeline()->exec());
     }

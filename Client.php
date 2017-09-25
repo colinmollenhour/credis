@@ -905,6 +905,7 @@ class Credis_Client {
                     break;
                 case 'zdelete':
                     $name = 'zrem';
+                    break;
                 case 'hmget':
                     // hmget needs to track the keys for rehydrating the results
                     if (isset($args[1]))
@@ -919,10 +920,10 @@ class Credis_Client {
             // In pipeline mode
             if($this->usePipeline)
             {
-                if($name == 'pipeline') {
+                if($name === 'pipeline') {
                     throw new CredisException('A pipeline is already in use and only one pipeline is supported.');
                 }
-                else if($name == 'exec') {
+                else if($name === 'exec') {
                     if($this->isMulti) {
                         $this->commandNames[] = array($name, $trackedArgs);
                         $this->commands .= self::_prepare_command(array($this->getRenamedCommand($name)));
@@ -935,21 +936,43 @@ class Credis_Client {
                     $this->commands = NULL;
 
                     // Read response
+                    $queuedResponses = null;
                     $response = array();
-                    foreach($this->commandNames as $command) {
+                    foreach($this->commandNames as $key => $command) {
                         list($name, $arguments) = $command;
-                        $response[] = $this->read_reply($name, $arguments);
+                        $result = $this->read_reply($name, true);
+                        if ($result !== null)
+                        {
+                            $result = $this->decode_reply($name, $result, $arguments);
+                        }
+                        else
+                        {
+                            $queuedResponses[] = $command;
+                        }
+                        $response[] = $result;
                     }
-                    $this->commandNames = NULL;
 
                     if($this->isMulti) {
                         $response = array_pop($response);
+                        foreach($queuedResponses as $key => $command)
+                        {
+                            list($name, $arguments) = $command;
+                            $response[$key] = $this->decode_reply($name, $response[$key], $arguments);
+                        }
                     }
+
+                    $this->commandNames = NULL;
                     $this->usePipeline = $this->isMulti = FALSE;
                     return $response;
                 }
+                else if ($name === 'discard')
+                {
+                    $this->commands = NULL;
+                    $this->commandNames = NULL;
+                    $this->usePipeline = $this->isMulti = FALSE;
+                }
                 else {
-                    if($name == 'multi') {
+                    if($name === 'multi') {
                         $this->isMulti = TRUE;
                     }
                     array_unshift($args, $this->getRenamedCommand($name));
@@ -960,7 +983,7 @@ class Credis_Client {
             }
 
             // Start pipeline mode
-            if($name == 'pipeline')
+            if($name === 'pipeline')
             {
                 $this->usePipeline = TRUE;
                 $this->commandNames = array();
@@ -969,7 +992,7 @@ class Credis_Client {
             }
 
             // If unwatching, allow reconnect with no error thrown
-            if($name == 'unwatch') {
+            if($name === 'unwatch') {
                 $this->isWatching = FALSE;
             }
 
@@ -977,7 +1000,8 @@ class Credis_Client {
             array_unshift($args, $this->getRenamedCommand($name));
             $command = self::_prepare_command($args);
             $this->write_command($command);
-            $response = $this->read_reply($name, $trackedArgs);
+            $response = $this->read_reply($name);
+            $response = $this->decode_reply($name, $response, $trackedArgs);
 
             switch($name)
             {
@@ -1238,13 +1262,13 @@ class Credis_Client {
         }
     }
 
-    protected function read_reply($name = '', $arguments = array())
+    protected function read_reply($name = '', $returnQueued = false)
     {
         $reply = fgets($this->redis);
         if($reply === FALSE) {
             $info = stream_get_meta_data($this->redis);
             $this->close(true);
-            if ($info['timed_out']) {                
+            if ($info['timed_out']) {
                 throw new CredisException('Read operation timed out.', CredisException::CODE_TIMED_OUT);
             } else {
                 throw new CredisException('Lost connection to Redis server.', CredisException::CODE_DISCONNECTED);
@@ -1267,8 +1291,11 @@ class Credis_Client {
             /* Inline reply */
             case '+':
                 $response = substr($reply, 1);
-                if($response == 'OK' || $response == 'QUEUED') {
+                if($response == 'OK') {
                   return TRUE;
+                }
+                if($response == 'QUEUED') {
+                    return $returnQueued ? null : true;
                 }
                 break;
             /* Bulk reply */
@@ -1301,40 +1328,53 @@ class Credis_Client {
                 break;
         }
 
+        return $response;
+    }
+
+    protected function decode_reply($name, $response, array $arguments = array() )
+    {
         // Smooth over differences between phpredis and standalone response
-        switch($name)
+        switch ($name)
         {
             case '': // Minor optimization for multi-bulk replies
                 break;
             case 'config':
             case 'hgetall':
                 $keys = $values = array();
-                while($response) {
+                while ($response)
+                {
                     $keys[] = array_shift($response);
                     $values[] = array_shift($response);
                 }
                 $response = count($keys) ? array_combine($keys, $values) : array();
                 break;
             case 'info':
-                $lines = explode(CRLF, trim($response,CRLF));
+                $lines = explode(CRLF, trim($response, CRLF));
                 $response = array();
-                foreach($lines as $line) {
-                    if ( ! $line || substr($line, 0, 1) == '#') {
-                      continue;
+                foreach ($lines as $line)
+                {
+                    if (!$line || substr($line, 0, 1) == '#')
+                    {
+                        continue;
                     }
                     list($key, $value) = explode(':', $line, 2);
                     $response[$key] = $value;
                 }
                 break;
             case 'ttl':
-                if($response === -1) {
-                    $response = FALSE;
+                if ($response === -1)
+                {
+                    $response = false;
                 }
                 break;
             case 'hmget':
                 if (count($arguments) != count($response))
                 {
-                    throw new CredisException('hmget arguments and response do not match: '.print_r($arguments, TRUE). ' ' .print_r($response, TRUE));
+                    throw new CredisException(
+                        'hmget arguments and response do not match: ' . print_r($arguments, true) . ' ' . print_r(
+                            $response, true
+                        )
+                    );
                 }
                 // rehydrate results into key => value form
                 $response = array_combine($arguments, $response);
