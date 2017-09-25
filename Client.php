@@ -880,6 +880,7 @@ class Credis_Client {
                             $cArgs[] = array('limit' => $args[3]['limit']);
                         }
                         $args[3] = $cArgs;
+                        $trackedArgs = $cArgs;
                     }
                     break;
                 case 'mget':
@@ -936,7 +937,7 @@ class Credis_Client {
                     $this->commands = NULL;
 
                     // Read response
-                    $queuedResponses = null;
+                    $queuedResponses = array();
                     $response = array();
                     foreach($this->commandNames as $key => $command) {
                         list($name, $arguments) = $command;
@@ -1002,47 +1003,6 @@ class Credis_Client {
             $this->write_command($command);
             $response = $this->read_reply($name);
             $response = $this->decode_reply($name, $response, $trackedArgs);
-
-            switch($name)
-            {
-                case 'scan':
-                case 'sscan':
-                    $ref = array_shift($response);
-                    $response = empty($response[0]) ? array() : $response[0];
-                    break;
-                case 'hscan':
-                case 'zscan':
-                    $ref = array_shift($response);
-                    $response = empty($response[0]) ? array() : $response[0];
-                    if (!empty($response) && is_array($response))
-                    {
-                        $count  = count($response);
-                        $out    = array();
-                        for($i  = 0;$i < $count;$i+=2){
-                            $out[$response[$i]] = $response[$i+1];
-                        }
-                        $response = $out;
-                    }
-					break;
-                case 'zrangebyscore':
-                case 'zrevrangebyscore':
-                    if (in_array('withscores', $args, true)) {
-                        // Map array of values into key=>score list like phpRedis does
-                        $item = null;
-                        $out = array();
-                        foreach ($response as $value) {
-                            if ($item == null) {
-                                $item = $value;
-                            } else {
-                                // 2nd value is the score
-                                $out[$item] = (float) $value;
-                                $item = null;
-                            }
-                        }
-                        $response = $out;
-                    }
-                    break;
-            }
 
             // Watch mode disables reconnect so error is thrown
             if($name == 'watch') {
@@ -1378,6 +1338,52 @@ class Credis_Client {
                 }
                 // rehydrate results into key => value form
                 $response = array_combine($arguments, $response);
+                break;
+
+            case 'scan':
+            case 'sscan':
+                $ref = array_shift($response);
+                $response = empty($response[0]) ? array() : $response[0];
+                break;
+            case 'hscan':
+            case 'zscan':
+                $ref = array_shift($response);
+                $response = empty($response[0]) ? array() : $response[0];
+                if (!empty($response) && is_array($response))
+                {
+                    $count = count($response);
+                    $out = array();
+                    for ($i = 0; $i < $count; $i += 2)
+                    {
+                        $out[$response[$i]] = $response[$i + 1];
+                    }
+                    $response = $out;
+                }
+                break;
+            case 'zrangebyscore':
+            case 'zrevrangebyscore':
+            case 'zrange':
+            case 'zrevrange':
+                if (in_array('withscores', $arguments, true))
+                {
+                    // Map array of values into key=>score list like phpRedis does
+                    $item = null;
+                    $out = array();
+                    foreach ($response as $value)
+                    {
+                        if ($item == null)
+                        {
+                            $item = $value;
+                        }
+                        else
+                        {
+                            // 2nd value is the score
+                            $out[$item] = (float)$value;
+                            $item = null;
+                        }
+                    }
+                    $response = $out;
+                }
                 break;
         }
 
