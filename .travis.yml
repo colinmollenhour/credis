@@ -17,8 +17,8 @@ install:
   - wget http://download.redis.io/releases/redis-3.2.11.tar.gz
   - tar -xzf redis-3.2.11.tar.gz
   - make -s -C redis-3.2.11 -j4
-  - mv redis-3.2.11/src/redis-sentinel ./redis-sentinel
-  - mv redis-3.2.11/src/redis-server ./redis-server
+  - mv redis-3.2.11/src/redis-sentinel $TRAVIS_BUILD_DIR/redis-sentinel
+  - mv redis-3.2.11/src/redis-server $TRAVIS_BUILD_DIR/redis-server
 
 script:
   - phpunit
