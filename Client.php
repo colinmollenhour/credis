@@ -939,7 +939,7 @@ class Credis_Client {
                     // Read response
                     $queuedResponses = array();
                     $response = array();
-                    foreach($this->commandNames as $key => $command) {
+                    foreach($this->commandNames as $command) {
                         list($name, $arguments) = $command;
                         $result = $this->read_reply($name, true);
                         if ($result !== null)
