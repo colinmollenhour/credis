@@ -52,13 +52,13 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
                     exec('kill '.$pid);
                 }
             }
-            unlink('dump.rdb');
-            unlink('redis-master.conf');
-            unlink('redis-slave.conf');
-            unlink('redis-sentinel.conf');
-            rename('redis-master.conf.bak','redis-master.conf');
-            rename('redis-slave.conf.bak','redis-slave.conf');
-            rename('redis-sentinel.conf.bak','redis-sentinel.conf');
+            @unlink('dump.rdb');
+            @unlink('redis-master.conf');
+            @unlink('redis-slave.conf');
+            @unlink('redis-sentinel.conf');
+            @copy('redis-master.conf.bak','redis-master.conf');
+            @copy('redis-slave.conf.bak','redis-slave.conf');
+            @copy('redis-sentinel.conf.bak','redis-sentinel.conf');
         }
     }
 }
