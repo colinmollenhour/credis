@@ -12,11 +12,13 @@ matrix:
     - php: 7.1
     - php: 7.2
 
-services:
-  - redis-server
-
 install:
   - yes '' | pecl install -f redis
+  - wget http://download.redis.io/releases/redis-3.2.11.tar.gz
+  - tar -xzf redis-3.2.11.tar.gz
+  - make -C redis-3.2.11 -j4
+  - mv redis-3.2.1/src/redis-sentinel ./redis-sentinel
+  - mv redis-3.2.1/src/redis-server ./redis-server
 
 script:
   - phpunit
