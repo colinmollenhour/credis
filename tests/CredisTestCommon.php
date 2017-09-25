@@ -31,6 +31,8 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
             copy('redis-slave.conf','redis-slave.conf.bak');
             copy('redis-sentinel.conf','redis-sentinel.conf.bak');
             exec('redis-sentinel redis-sentinel.conf');
+            // wait for redis to initialize
+            sleep(1);
         }
     }
 
