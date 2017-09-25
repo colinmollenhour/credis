@@ -19,4 +19,4 @@ install:
   - yes '' | pecl install -f redis
 
 script:
-  - phpunit --testsuite Basic --exclude-group UnixSocket
+  - phpunit
