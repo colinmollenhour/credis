@@ -44,9 +44,9 @@ class CredisClusterTest extends CredisTestCommon
   protected function tearDown()
   {
     if($this->cluster) {
+      $this->cluster->flushAll();
       foreach($this->cluster->clients() as $client){
         if($client->isConnected()) {
-            $client->flushAll();
             $client->close();
         }
       }
@@ -96,6 +96,7 @@ class CredisClusterTest extends CredisTestCommon
       $this->tearDown();
       $this->cluster = new Credis_Cluster(array($this->config[0],$this->config[6]),2,$this->useStandalone);
       $this->assertTrue($this->cluster->client('master')->set('key','value'));
+      sleep(1); // allow replication
       $this->assertEquals('value',$this->cluster->client('slave')->get('key'));
       $this->assertEquals('value',$this->cluster->get('key'));
       try
@@ -113,8 +114,9 @@ class CredisClusterTest extends CredisTestCommon
       $this->cluster = new Credis_Cluster(array($writeOnlyConfig,$this->config[6]),2,$this->useStandalone);
       $this->assertTrue($this->cluster->client('master')->set('key','value'));
       $this->assertEquals('value',$this->cluster->client('slave')->get('key'));
-      $this->assertFalse($this->cluster->client('slave')->set('key2','value'));
       $this->assertEquals('value',$this->cluster->get('key'));
+      $this->expectException('CredisException','read-only slaves should not be writeable');
+      $this->assertFalse($this->cluster->client('slave')->set('key2','value'));
   }
   public function testMasterWithoutSlavesAndWriteOnlyFlag()
   {
