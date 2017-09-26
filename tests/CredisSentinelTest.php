@@ -7,8 +7,6 @@ require_once dirname(__FILE__).'/CredisTestCommon.php';
 
 class CredisSentinelTest extends CredisTestCommon
 {
-  protected $delayForSlave = true;
-
   /** @var Credis_Sentinel */
   protected $sentinel;
 
@@ -31,6 +29,7 @@ class CredisSentinelTest extends CredisTestCommon
     if($this->useStandalone) {
       $this->sentinel->forceStandalone();
     }
+    $this->waitForSlaveReplication();
   }
   protected function tearDown()
   {

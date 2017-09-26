@@ -7,7 +7,6 @@ if (!class_exists('\PHPUnit\Framework\TestCase') && class_exists('\PHPUnit_Frame
 class CredisTestCommon extends \PHPUnit\Framework\TestCase
 {
     protected $useStandalone = false;
-    protected $delayForSlave = false;
     protected $redisConfig = null;
     protected $slaveConfig = null;
 
@@ -30,7 +29,20 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
             }
             $this->redisConfig = $arrayConfig;
         }
-        if ($this->delayForSlave && $this->slaveConfig === null)
+
+        if($this->useStandalone && !extension_loaded('redis')) {
+            $this->fail('The Redis extension is not loaded.');
+        }
+    }
+
+    /**
+     * Verifies the slave has connected to the master and replication has caught up
+     *
+     * @return bool
+     */
+    protected function waitForSlaveReplication()
+    {
+        if ($this->slaveConfig === null)
         {
             foreach ($this->redisConfig as $config)
             {
@@ -44,31 +56,40 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
             {
                 $this->markTestSkipped('Could not load slave config');
 
-                return;
+                return false;
             }
+        }
+        $masterConfig = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port']);
+        $masterConfig->forceStandalone();
 
-            $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
-            $slaveConfig->forceStandalone();
-            // wait for replication initialization
-            while (true)
+        $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
+        $slaveConfig->forceStandalone();
+
+        while (true)
+        {
+            $role = $slaveConfig->role();
+            if ($role[0] !== 'slave')
             {
-                $role = $slaveConfig->role();
-                if ($role[0] !== 'slave')
-                {
-                    $this->markTestSkipped('slave config does not points to a slave');
-                    return;
-                }
-                if ($role[3] === 'connected')
-                {
-                    break;
-                }
-                usleep(100);
+                $this->markTestSkipped('slave config does not points to a slave');
+                return false;
             }
+            if ($role[3] === 'connected')
+            {
+                $masterRole = $masterConfig->role();
+                if ($masterRole[0] !== 'master')
+                {
+                    $this->markTestSkipped('master config does not points to a master');
+                    return false;
+                }
+                if ($role[4] >= $masterRole[1])
+                {
+                    return true;
+                }
+            }
+            usleep(100);
         }
-
-        if($this->useStandalone && !extension_loaded('redis')) {
-            $this->fail('The Redis extension is not loaded.');
-        }
+        // shouldn't get here
+        return false;
     }
 
     public static function setUpBeforeClass()

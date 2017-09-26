@@ -6,8 +6,6 @@ require_once dirname(__FILE__).'/CredisTestCommon.php';
 
 class CredisClusterTest extends CredisTestCommon
 {
-  protected $delayForSlave = true;
-
   /** @var Credis_Cluster */
   protected $cluster;
 
@@ -74,7 +72,7 @@ class CredisClusterTest extends CredisTestCommon
       $this->tearDown();
       $this->cluster = new Credis_Cluster(array($this->redisConfig[0],$this->redisConfig[6]), 2, $this->useStandalone);
       $this->assertTrue($this->cluster->client('master')->set('key','value'));
-      sleep(1); // allow replication
+      $this->waitForSlaveReplication();
       $this->assertEquals('value',$this->cluster->client('slave')->get('key'));
       $this->assertEquals('value',$this->cluster->get('key'));
       try
@@ -91,6 +89,7 @@ class CredisClusterTest extends CredisTestCommon
       $writeOnlyConfig['write_only'] = true;
       $this->cluster = new Credis_Cluster(array($writeOnlyConfig,$this->redisConfig[6]), 2, $this->useStandalone);
       $this->assertTrue($this->cluster->client('master')->set('key','value'));
+      $this->waitForSlaveReplication();
       $this->assertEquals('value',$this->cluster->client('slave')->get('key'));
       $this->assertEquals('value',$this->cluster->get('key'));
       $this->expectException('CredisException','read-only slaves should not be writeable');
