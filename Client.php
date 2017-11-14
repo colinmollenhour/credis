@@ -222,6 +222,8 @@ class Credis_Client {
      */
     protected $connected = FALSE;
 
+    protected $pid;
+
     /**
      * @var bool
      */
@@ -427,9 +429,14 @@ class Credis_Client {
      */
     public function connect()
     {
+        $currentpid = getmypid();
         if ($this->connected) {
-            return $this;
+            if ($currentpid === $this->pid) {
+                return $this;
+            }
+            $this->connected = false;
         }
+        $this->pid = $currentpid;
         $this->close(true);
 
         if ($this->standalone) {
