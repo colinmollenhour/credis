@@ -537,7 +537,7 @@ class Credis_Client {
     {
         $result = TRUE;
         if ($this->redis && ($force || $this->isConnected() && ! $this->persistent)) {
-            if ($pid === getmypid()) {
+            if ($this->pid === getmypid()) {
                 try {
                     if (is_callable(array($this->redis, 'close'))) {
                         $this->redis->close();
