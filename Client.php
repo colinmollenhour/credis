@@ -222,6 +222,11 @@ class Credis_Client {
      */
     protected $connected = FALSE;
 
+    /**
+     * Process ID of the connection.
+     * So we don't accidentally use the same connection after fork.
+     * @var null|int
+    */
     protected $pid;
 
     /**
