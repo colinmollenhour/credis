@@ -223,6 +223,13 @@ class Credis_Client {
     protected $connected = FALSE;
 
     /**
+     * Process ID of the connection.
+     * So we don't accidentally use the same connection after fork.
+     * @var null|int
+    */
+    protected $pid;
+
+    /**
      * @var bool
      */
     protected $standalone;
@@ -373,7 +380,7 @@ class Credis_Client {
         if ($this->standalone) {
             return $this;
         }
-        if($this->connected) {
+        if($this->isConnected()) {
             throw new CredisException('Cannot force Credis_Client to use standalone PHP driver after a connection has already been established.');
         }
         $this->standalone = TRUE;
@@ -427,7 +434,7 @@ class Credis_Client {
      */
     public function connect()
     {
-        if ($this->connected) {
+        if ($this->isConnected()) {
             return $this;
         }
         $this->close(true);
@@ -477,6 +484,7 @@ class Credis_Client {
 
         $this->connectFailures = 0;
         $this->connected = TRUE;
+        $this->pid = getmypid();
 
         // Set read timeout
         if ($this->readTimeout) {
@@ -496,7 +504,7 @@ class Credis_Client {
      */
     public function isConnected()
     {
-        return $this->connected;
+        return $this->connected && $this->pid === getmypid();
     }
     /**
      * Set the read timeout for the connection. Use 0 to disable timeouts entirely (or use a very long timeout
@@ -533,18 +541,21 @@ class Credis_Client {
     public function close($force = FALSE)
     {
         $result = TRUE;
-        if ($this->redis && ($force || $this->connected && ! $this->persistent)) {
-            try {
-                if (is_callable(array($this->redis, 'close'))) {
-                    $this->redis->close();
-                } else {
-                    @fclose($this->redis);
-                    $this->redis = null;
+        if ($this->redis && ($force || $this->isConnected() && ! $this->persistent)) {
+            if ($this->pid === getmypid()) {
+                try {
+                    if (is_callable(array($this->redis, 'close'))) {
+                        $this->redis->close();
+                    } else {
+                        @fclose($this->redis);
+                        $this->redis = null;
+                    }
+                } catch (Exception $e) {
+                    ; // Ignore exceptions on close
                 }
-            } catch (Exception $e) {
-                ; // Ignore exceptions on close
             }
             $this->connected = $this->usePipeline = $this->isMulti = $this->isWatching = FALSE;
+            $this->pid = null;
         }
         return $result;
     }
