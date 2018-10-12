@@ -798,6 +798,7 @@ class Credis_Client {
                     $eArgs = (array) array_shift($args);
                     $args = array($script, count($keys), $keys, $eArgs);
                     break;
+                case 'zinterstore':
                 case 'zunionstore':
                     $dest = array_shift($args);
                     $keys = (array) array_shift($args);
@@ -1049,6 +1050,7 @@ class Credis_Client {
                     }
                     $args = self::_flattenArguments($args);
                     break;
+                case 'zinterstore':
                 case 'zunionstore':
                     $cArgs = array();
                     $cArgs[] = array_shift($args); // destination
