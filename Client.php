@@ -1099,7 +1099,8 @@ class Credis_Client {
                 case 'hscan':
                 case 'zscan':
                     // allow phpredis to see the caller's reference
-                    //$param_ref =& $args[0];
+                    $ref = array_shift($args);
+                    $args = array_merge([&$ref], $args);
                     break;
                 default:
                     // Flatten arguments
