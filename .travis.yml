@@ -1,0 +1,22 @@
+language: php
+
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+  - nightly
+allow_failures:
+  - php: nightly
+
+
+install:
+  - yes '' | pecl install -f redis
+  - wget http://download.redis.io/releases/redis-4.0.11.tar.gz
+  - tar -xzf redis-4.0.11.tar.gz
+  - make -s -C redis-4.0.11 -j4
+  - export PATH=$PATH:$PWD/redis-4.0.11/src/
+
+script:
+  - phpunit

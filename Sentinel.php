@@ -269,6 +269,22 @@ class Credis_Sentinel
     }
 
     /**
+     * get information block for the sentinel instance
+     *
+     * @param string|NUll $section
+     *
+     * @return array
+     */
+    public function info($section = null)
+    {
+        if ($section)
+        {
+            return $this->_client->info($section);
+        }
+        return $this->_client->info();
+    }
+
+    /**
      * Return information about all registered master servers
      * @return mixed
      */
