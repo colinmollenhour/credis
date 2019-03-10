@@ -8,16 +8,16 @@ class CredisTest extends CredisTestCommon
     /** @var Credis_Client */
     protected $credis;
 
-    protected function setUp()
+    protected function setUpOverride()
     {
-        parent::setUp();
+        parent::setUpOverride();
         $this->credis = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port'], $this->redisConfig[0]['timeout']);
         if($this->useStandalone) {
             $this->credis->forceStandalone();
         }
         $this->credis->flushDb();
     }
-    protected function tearDown()
+    protected function tearDownOverride()
     {
         if($this->credis) {
             $this->credis->close();

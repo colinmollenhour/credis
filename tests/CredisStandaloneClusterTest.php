@@ -5,7 +5,7 @@ require_once dirname(__FILE__).'/CredisClusterTest.php';
 class CredisStandaloneClusterTest extends CredisClusterTest
 {
   protected $useStandalone = TRUE;
-  protected function tearDown()
+  protected function tearDownOverride()
   {
     if($this->cluster) {
         foreach($this->cluster->clients() as $client){

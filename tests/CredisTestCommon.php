@@ -1,16 +1,28 @@
 <?php
-// backward compatibility (https://stackoverflow.com/a/42828632/187780)
-if (!class_exists('\PHPUnit\Framework\TestCase') && class_exists('\PHPUnit_Framework_TestCase')) {
-    class_alias('\PHPUnit_Framework_TestCase', '\PHPUnit\Framework\TestCase');
+
+/**
+ * php 7.2 / phpUnit 8.0 compat fix
+ * Dynamically define base class with right methods signature
+ */
+if (class_exists('\PHPUnit\Runner\Version')
+  && version_compare(\PHPUnit\Runner\Version::id(), '8.0', '>='))
+{
+  // php 7.2 / phpUnit 8.0 mode
+  require_once dirname(__FILE__).'/CredisTestCommonBase.php';
+  class CredisTestCommonProxy extends CredisTestCommonBase { }
+} else {
+  // legacy code compatibility mode
+  require_once dirname(__FILE__).'/CredisTestCommonCompat.php';
+  class CredisTestCommonProxy extends CredisTestCommonCompat { }
 }
 
-class CredisTestCommon extends \PHPUnit\Framework\TestCase
+class CredisTestCommon extends CredisTestCommonProxy
 {
     protected $useStandalone = false;
     protected $redisConfig = null;
     protected $slaveConfig = null;
 
-    protected function setUp()
+    protected function setUpOverride()
     {
         if ($this->redisConfig === null)
         {
@@ -95,7 +107,7 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
         return false;
     }
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClassOverride()
     {
         if(preg_match('/^WIN/',strtoupper(PHP_OS))){
             echo "Unit tests will not work automatically on Windows. Please setup all Redis instances manually:".PHP_EOL;
@@ -122,7 +134,7 @@ class CredisTestCommon extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClassOverride()
     {
         if(preg_match('/^WIN/',strtoupper(PHP_OS))){
             echo "Please kill all Redis instances manually:".PHP_EOL;
