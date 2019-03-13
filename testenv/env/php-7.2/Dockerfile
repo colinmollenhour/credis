@@ -1,5 +1,5 @@
 FROM php:7.2
-ENV phpunit_verison 8.0
+ENV phpunit_verison 7.5
 ENV redis_version 4.0.11
 
 RUN apt-get update && \

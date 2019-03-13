@@ -1,12 +1,24 @@
 language: php
 
-php:
-  - 5.5
-  - 5.6
-  - 7.0
-  - 7.1
-  - 7.2
-  - nightly
+matrix:
+  include:
+    - php: 5.5
+      env:
+        - PHPUNIT_VERSION=^4.8
+    - php: 5.6
+      env:
+        - PHPUNIT_VERSION=^5.7
+    - php: 7.0
+      env:
+        - PHPUNIT_VERSION=^6.4
+    - php: 7.1
+      env:
+        - PHPUNIT_VERSION=^6.4
+    - php: 7.2
+      env:
+        - PHPUNIT_VERSION=^7.5
+    - php: nightly
+
 allow_failures:
   - php: nightly
 
@@ -17,6 +29,11 @@ install:
   - tar -xzf redis-4.0.11.tar.gz
   - make -s -C redis-4.0.11 -j4
   - export PATH=$PATH:$PWD/redis-4.0.11/src/
+  - |
+    if [ ! -z "$PHPUNIT_VERSION" ]; then
+      composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
+      composer install --dev -n
+    fi
 
 script:
-  - phpunit
+  - vendor/bin/phpunit
