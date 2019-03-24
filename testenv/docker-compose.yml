@@ -25,3 +25,8 @@ services:
     build: env/php-7.2/
     volumes:
       - ../:/src/
+
+  php-73:
+    build: env/php-7.3/
+    volumes:
+      - ../:/src/
