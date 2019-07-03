@@ -177,11 +177,6 @@ class CredisSentinelTest extends CredisTestCommon
   {
     $pong = $this->sentinel->ping();
     $this->assertEquals("PONG",$pong);
-    if (version_compare(phpversion('redis'), '5.0.0', '==') === 1)
-    {
-      $pong = $this->sentinel->ping("test");
-      $this->assertEquals("test", $pong);
-    }
   }
 
   public function testGetHostAndPort()

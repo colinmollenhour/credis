@@ -325,12 +325,11 @@ class Credis_Sentinel
 
     /**
      * Check if the Sentinel is still responding
-     * @param string $name
      * @return string|Credis_Client
      */
-    public function ping($name = null)
+    public function ping()
     {
-        return $this->_client->ping($name);
+        return $this->_client->ping();
     }
 
     /**
