@@ -748,4 +748,15 @@ class CredisTest extends CredisTestCommon
         while($iterator);
         $this->assertEquals(count($seen), 100);
     }
+
+  public function testPing()
+  {
+    $pong = $this->credis->ping();
+    $this->assertEquals("PONG",$pong);
+    if (version_compare(phpversion('redis'), '5.0.0', '==') === 1)
+    {
+      $pong = $this->credis->ping("test");
+      $this->assertEquals("test", $pong);
+    }
+  }
 }

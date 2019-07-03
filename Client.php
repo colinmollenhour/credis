@@ -56,7 +56,6 @@ class CredisException extends Exception
  * @method bool|array|Credis_Client    config(string $setGet, string $key, string $value = null)
  * @method array|Credis_Client         role()
  * @method array|Credis_Client         time()
- * @method array|Credis_Client         ping()
  *
  * Keys:
  * @method int|Credis_Client           del(string $key)
@@ -779,6 +778,15 @@ class Credis_Client {
         return null;
     }
 
+    /**
+     * @param string|null $name
+     * @return string|Credis_Client
+     */
+    public function ping($name = null)
+    {
+      return $this->__call('ping', $name ? array($name) : array());
+    }
+
     public function __call($name, $args)
     {
         // Lazy connection
@@ -1192,6 +1200,15 @@ class Credis_Client {
                 case 'exists':
                     // smooth over phpredis-v4 vs earlier difference to match documented credis return results
                     $response = (int) $response;
+                    break;
+                case 'ping':
+                    if ($response) {
+                      if ($response === true) {
+                        $response = isset($args[0]) ? $args[0] : "PONG";
+                      } else if ($response[0] === '+') {
+                        $response = substr($response, 1);
+                      }
+                    }
                     break;
                 default:
                     $error = $this->redis->getLastError();
