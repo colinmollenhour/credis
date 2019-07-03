@@ -753,7 +753,7 @@ class CredisTest extends CredisTestCommon
   {
     $pong = $this->credis->ping();
     $this->assertEquals("PONG",$pong);
-    if (version_compare(phpversion('redis'), '5.0.0', '==') === 1)
+    if (version_compare(phpversion('redis'), '5.0.0', '>='))
     {
       $pong = $this->credis->ping("test");
       $this->assertEquals("test", $pong);
