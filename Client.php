@@ -117,6 +117,7 @@ class CredisException extends Exception
  * @method array|Credis_Client         hGetAll(string $key)
  * @method bool|Credis_Client          hExists(string $key, string $field)
  * @method int|Credis_Client           hIncrBy(string $key, string $field, int $value)
+ * @method float|Credis_Client         hIncrByFloat(string $key, string $member, float $value)
  * @method bool|Credis_Client          hMSet(string $key, array $keysValues)
  * @method array|Credis_Client         hMGet(string $key, array $fields)
  *
