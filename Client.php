@@ -190,6 +190,12 @@ class Credis_Client {
     protected $host;
 
     /**
+     * Scheme of the Redis server (tcp, tls, unix)
+     * @var string
+     */
+    protected $scheme;
+
+    /**
      * Port on which the Redis server is running
      * @var integer
      */
@@ -316,6 +322,10 @@ class Credis_Client {
         $this->authPassword = $password;
         $this->selectedDb = (int)$db;
         $this->convertHost();
+        if ($this->scheme == 'tls') {
+            // PHP Redis extension doesn't support TLS
+            $this->standalone = true;
+        }
     }
 
     public function __destruct()
@@ -402,8 +412,9 @@ class Credis_Client {
     }
     protected function convertHost()
     {
-        if (preg_match('#^(tcp|unix)://(.*)$#', $this->host, $matches)) {
+        if (preg_match('#^(tcp|tls|unix)://(.*)$#', $this->host, $matches)) {
             if($matches[1] == 'tcp') {
+                $this->scheme = $matches[1];
                 if ( ! preg_match('#^([^:]+)(:([0-9]+))?(/(.+))?$#', $matches[2], $matches)) {
                     throw new CredisException('Invalid host format; expected tcp://host[:port][/persistence_identifier]');
                 }
@@ -413,6 +424,7 @@ class Credis_Client {
             } else {
                 $this->host = $matches[2];
                 $this->port = NULL;
+                $this->scheme = 'unix';
                 if (substr($this->host,0,1) != '/') {
                     throw new CredisException('Invalid unix socket format; expected unix:///path/to/redis.sock');
                 }
@@ -420,6 +432,9 @@ class Credis_Client {
         }
         if ($this->port !== NULL && substr($this->host,0,1) == '/') {
             $this->port = NULL;
+        }
+        if (!$this->scheme) {
+            $this->scheme = 'tcp';
         }
     }
     /**
@@ -436,8 +451,8 @@ class Credis_Client {
         if ($this->standalone) {
             $flags = STREAM_CLIENT_CONNECT;
             $remote_socket = $this->port === NULL
-                ? 'unix://'.$this->host
-                : 'tcp://'.$this->host.':'.$this->port;
+                ? $this->scheme.'://'.$this->host
+                : $this->scheme.'://'.$this->host.':'.$this->port;
             if ($this->persistent && $this->port !== NULL) {
                 // Persistent connections to UNIX sockets are not supported
                 $remote_socket .= '/'.$this->persistent;
