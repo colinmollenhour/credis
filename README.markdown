@@ -26,6 +26,39 @@ Credis_Client also supports transparent command renaming. Write code using the o
 client will send the aliased commands to the server transparently. Specify the renamed commands using a prefix
 for md5, a callable function, individual aliases, or an array map of aliases. See "Redis Security":http://redis.io/topics/security for more info.
 
+## Supported connection string formats
+
+```php
+$redis = new Credis_Client(/* connection string */);
+```
+
+### Unix socket connection string
+
+`unix:///path/to/redis.sock` 
+
+### TCP connection string
+
+`tcp://host[:port][/persistence_identifier]` 
+
+### TLS connection string
+
+`tls://host[:port][/persistence_identifier]` 
+
+#### Enable transport level security (TLS)
+
+Use TLS connection string `tls://127.0.0.1:6379` instead of TCP connection `tcp://127.0.0.1:6379` string in order to enable transport level security.
+
+```php
+require 'Credis/Client.php';
+$redis = new Credis_Client('tls://127.0.0.1:6379');
+$redis->set('awesome', 'absolutely');
+echo sprintf('Is Credis awesome? %s.\n', $redis->get('awesome'));
+
+// When arrays are given as arguments they are flattened automatically
+$redis->rpush('particles', array('proton','electron','neutron'));
+$particles = $redis->lrange('particles', 0, -1);
+```
+
 ## Clustering your servers
 
 Credis also includes a way for developers to fully utilize the scalability of Redis with multiple servers and [consistent hashing](http://en.wikipedia.org/wiki/Consistent_hashing).
