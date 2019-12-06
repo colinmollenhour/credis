@@ -988,7 +988,7 @@ class Credis_Client {
                         foreach($queuedResponses as $key => $command)
                         {
                             list($name, $arguments) = $command;
-                            $response[$key] = $this->decode_reply($name, $response[$key], $arguments);
+                            $response[$key] = $this->decode_reply($name, $queuedResponses[$key], $arguments);
                         }
                     }
 
