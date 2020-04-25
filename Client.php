@@ -323,7 +323,7 @@ class Credis_Client {
         $this->authPassword = $password;
         $this->selectedDb = (int)$db;
         $this->convertHost();
-        if ($this->scheme == 'tls') {
+        if ($this->startsWith($this->scheme, 'tls')) {
             // PHP Redis extension doesn't work with TLS
             $this->standalone = true;
         }
@@ -411,10 +411,15 @@ class Credis_Client {
         $this->closeOnDestruct = $flag;
         return $this;
     }
+    protected function startsWith($haystack, $needle)
+    {
+        $length = strlen($needle);
+        return (substr($haystack, 0, $length) === $needle);
+    }
     protected function convertHost()
     {
-        if (preg_match('#^(tcp|tls|unix)://(.*)$#', $this->host, $matches)) {
-            if($matches[1] == 'tcp' || $matches[1] == 'tls') {
+        if (preg_match('#^(tcp|tls|tlsv\d(?:\.\d)?|unix)://(.+)$#', $this->host, $matches)) {
+            if($matches[1] == 'tcp' || $this->startsWith($matches[1], 'tls')) {
                 $this->scheme = $matches[1];
                 if ( ! preg_match('#^([^:]+)(:([0-9]+))?(/(.+))?$#', $matches[2], $matches)) {
                     throw new CredisException('Invalid host format; expected '.$this->scheme.'://host[:port][/persistence_identifier]');
