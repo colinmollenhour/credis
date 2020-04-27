@@ -196,6 +196,12 @@ class Credis_Client {
     protected $scheme;
 
     /**
+     * SSL Meta information
+     * @var string
+     */
+    protected $sslMeta;
+
+    /**
      * Port on which the Redis server is running
      * @var integer
      */
@@ -341,7 +347,7 @@ class Credis_Client {
      */
     public function isSubscribed()
     {
-    	return $this->subscribed;
+        return $this->subscribed;
     }
 
     /**
@@ -465,7 +471,24 @@ class Credis_Client {
                 $remote_socket .= '/'.$this->persistent;
                 $flags = $flags | STREAM_CLIENT_PERSISTENT;
             }
-            $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout !== null ? $this->timeout : 2.5, $flags);
+
+            $isTls = $this->startsWith($this->scheme, 'tls');
+
+            if ($isTls) {
+                $context = stream_context_create(['ssl' => [
+                    'capture_peer_cert' => true,
+                    'capture_peer_cert_chain' => true,
+                    'capture_session_meta' => true,
+                ]]);
+            } else {
+                $context = null;
+            }
+
+            $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout !== null ? $this->timeout : 2.5, $flags, $context);
+
+            if ($result && $isTls) {
+                $this->sslMeta = stream_context_get_options($context);
+            }
         }
         else {
             if ( ! $this->redis) {
@@ -668,9 +691,9 @@ class Credis_Client {
      */
     public function pUnsubscribe()
     {
-    	list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', func_get_args());
-    	$this->subscribed = $subscribedChannels > 0;
-    	return array($command, $channel, $subscribedChannels);
+        list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', func_get_args());
+        $this->subscribed = $subscribedChannels > 0;
+        return array($command, $channel, $subscribedChannels);
     }
 
     /**
@@ -685,16 +708,16 @@ class Credis_Client {
     }
 
     /**
-	 * @param int $Iterator
-	 * @param string $field
-	 * @param string $pattern
-	 * @param int $count
-	 * @return bool|array
-	 */
-	public function hscan(&$Iterator, $field, $pattern = null, $count = null)
-	{
-		return $this->__call('hscan', array($field, &$Iterator, $pattern, $count));
-	}
+     * @param int $Iterator
+     * @param string $field
+     * @param string $pattern
+     * @param int $count
+     * @return bool|array
+     */
+    public function hscan(&$Iterator, $field, $pattern = null, $count = null)
+    {
+        return $this->__call('hscan', array($field, &$Iterator, $pattern, $count));
+    }
 
     /**
      * @param int $Iterator
@@ -761,9 +784,9 @@ class Credis_Client {
      */
     public function unsubscribe()
     {
-    	list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', func_get_args());
-    	$this->subscribed = $subscribedChannels > 0;
-    	return array($command, $channel, $subscribedChannels);
+        list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', func_get_args());
+        $this->subscribed = $subscribedChannels > 0;
+        return array($command, $channel, $subscribedChannels);
     }
 
     /**
@@ -807,7 +830,7 @@ class Credis_Client {
      */
     public function ping($name = null)
     {
-      return $this->__call('ping', $name ? array($name) : array());
+        return $this->__call('ping', $name ? array($name) : array());
     }
 
     public function __call($name, $args)
@@ -883,24 +906,24 @@ class Credis_Client {
                 case 'sscan':
                 case 'zscan':
                 case 'hscan':
-					$trackedArgs = array(&$args[1]);
-					if (empty($trackedArgs[0]))
-					{
- 						$trackedArgs[0] = 0;
-					}
-					$eArgs = array($args[0],$trackedArgs[0]);
-					if (!empty($args[2]))
-					{
-						$eArgs[] = 'MATCH';
-						$eArgs[] = $args[2];
-					}
-					if (!empty($args[3]))
-					{
-						$eArgs[] = 'COUNT';
-						$eArgs[] = $args[3];
-					}
-					$args = $eArgs;
-					break;
+                    $trackedArgs = array(&$args[1]);
+                    if (empty($trackedArgs[0]))
+                    {
+                        $trackedArgs[0] = 0;
+                    }
+                    $eArgs = array($args[0],$trackedArgs[0]);
+                    if (!empty($args[2]))
+                    {
+                        $eArgs[] = 'MATCH';
+                        $eArgs[] = $args[2];
+                    }
+                    if (!empty($args[3]))
+                    {
+                        $eArgs[] = 'COUNT';
+                        $eArgs[] = $args[3];
+                    }
+                    $args = $eArgs;
+                    break;
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
                 case 'zrange':
@@ -1071,7 +1094,7 @@ class Credis_Client {
                 case 'del':
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
-                   break;
+                    break;
                 case 'zrange':
                 case 'zrevrange':
                     if (isset($args[3]) && is_array($args[3]))
@@ -1181,7 +1204,7 @@ class Credis_Client {
                     }
                 }
             }
-            // Wrap exceptions
+                // Wrap exceptions
             catch(RedisException $e) {
                 $code = 0;
                 if ( ! ($result = $this->redis->IsConnected())) {
@@ -1198,12 +1221,12 @@ class Credis_Client {
             {
                 case 'type':
                     $typeMap = array(
-                      self::TYPE_NONE,
-                      self::TYPE_STRING,
-                      self::TYPE_SET,
-                      self::TYPE_LIST,
-                      self::TYPE_ZSET,
-                      self::TYPE_HASH,
+                        self::TYPE_NONE,
+                        self::TYPE_STRING,
+                        self::TYPE_SET,
+                        self::TYPE_LIST,
+                        self::TYPE_ZSET,
+                        self::TYPE_HASH,
                     );
                     $response = $typeMap[$response];
                     break;
@@ -1226,11 +1249,11 @@ class Credis_Client {
                     break;
                 case 'ping':
                     if ($response) {
-                      if ($response === true) {
-                        $response = isset($args[0]) ? $args[0] : "PONG";
-                      } else if ($response[0] === '+') {
-                        $response = substr($response, 1);
-                      }
+                        if ($response === true) {
+                            $response = isset($args[0]) ? $args[0] : "PONG";
+                        } else if ($response[0] === '+') {
+                            $response = substr($response, 1);
+                        }
                     }
                     break;
                 default:
@@ -1308,7 +1331,7 @@ class Credis_Client {
             case '+':
                 $response = substr($reply, 1);
                 if($response == 'OK') {
-                  return TRUE;
+                    return TRUE;
                 }
                 if($response == 'QUEUED') {
                     return $returnQueued ? null : true;
@@ -1332,7 +1355,7 @@ class Credis_Client {
 
                 $response = array();
                 for ($i = 0; $i < $count; $i++) {
-                        $response[] = $this->read_reply();
+                    $response[] = $this->read_reply();
                 }
                 break;
             /* Integer reply */
