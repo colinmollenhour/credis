@@ -351,7 +351,7 @@ class Credis_Client {
      */
     public function isSubscribed()
     {
-        return $this->subscribed;
+    	return $this->subscribed;
     }
 
     /**
@@ -695,9 +695,9 @@ class Credis_Client {
      */
     public function pUnsubscribe()
     {
-        list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', func_get_args());
-        $this->subscribed = $subscribedChannels > 0;
-        return array($command, $channel, $subscribedChannels);
+    	list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', func_get_args());
+    	$this->subscribed = $subscribedChannels > 0;
+    	return array($command, $channel, $subscribedChannels);
     }
 
     /**
@@ -712,16 +712,16 @@ class Credis_Client {
     }
 
     /**
-     * @param int $Iterator
-     * @param string $field
-     * @param string $pattern
-     * @param int $count
-     * @return bool|array
-     */
-    public function hscan(&$Iterator, $field, $pattern = null, $count = null)
-    {
-        return $this->__call('hscan', array($field, &$Iterator, $pattern, $count));
-    }
+	 * @param int $Iterator
+	 * @param string $field
+	 * @param string $pattern
+	 * @param int $count
+	 * @return bool|array
+	 */
+	public function hscan(&$Iterator, $field, $pattern = null, $count = null)
+	{
+		return $this->__call('hscan', array($field, &$Iterator, $pattern, $count));
+	}
 
     /**
      * @param int $Iterator
@@ -788,9 +788,9 @@ class Credis_Client {
      */
     public function unsubscribe()
     {
-        list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', func_get_args());
-        $this->subscribed = $subscribedChannels > 0;
-        return array($command, $channel, $subscribedChannels);
+    	list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', func_get_args());
+    	$this->subscribed = $subscribedChannels > 0;
+    	return array($command, $channel, $subscribedChannels);
     }
 
     /**
@@ -834,7 +834,7 @@ class Credis_Client {
      */
     public function ping($name = null)
     {
-        return $this->__call('ping', $name ? array($name) : array());
+      return $this->__call('ping', $name ? array($name) : array());
     }
 
   /**
@@ -929,24 +929,24 @@ class Credis_Client {
                 case 'sscan':
                 case 'zscan':
                 case 'hscan':
-                    $trackedArgs = array(&$args[1]);
-                    if (empty($trackedArgs[0]))
-                    {
-                        $trackedArgs[0] = 0;
-                    }
-                    $eArgs = array($args[0],$trackedArgs[0]);
-                    if (!empty($args[2]))
-                    {
-                        $eArgs[] = 'MATCH';
-                        $eArgs[] = $args[2];
-                    }
-                    if (!empty($args[3]))
-                    {
-                        $eArgs[] = 'COUNT';
-                        $eArgs[] = $args[3];
-                    }
-                    $args = $eArgs;
-                    break;
+					$trackedArgs = array(&$args[1]);
+					if (empty($trackedArgs[0]))
+					{
+ 						$trackedArgs[0] = 0;
+					}
+					$eArgs = array($args[0],$trackedArgs[0]);
+					if (!empty($args[2]))
+					{
+						$eArgs[] = 'MATCH';
+						$eArgs[] = $args[2];
+					}
+					if (!empty($args[3]))
+					{
+						$eArgs[] = 'COUNT';
+						$eArgs[] = $args[3];
+					}
+					$args = $eArgs;
+					break;
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
                 case 'zrange':
@@ -1117,7 +1117,7 @@ class Credis_Client {
                 case 'del':
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
-                    break;
+                   break;
                 case 'zrange':
                 case 'zrevrange':
                     if (isset($args[3]) && is_array($args[3]))
@@ -1227,7 +1227,7 @@ class Credis_Client {
                     }
                 }
             }
-                // Wrap exceptions
+            // Wrap exceptions
             catch(RedisException $e) {
                 $code = 0;
                 if ( ! ($result = $this->redis->IsConnected())) {
@@ -1244,12 +1244,12 @@ class Credis_Client {
             {
                 case 'type':
                     $typeMap = array(
-                        self::TYPE_NONE,
-                        self::TYPE_STRING,
-                        self::TYPE_SET,
-                        self::TYPE_LIST,
-                        self::TYPE_ZSET,
-                        self::TYPE_HASH,
+                      self::TYPE_NONE,
+                      self::TYPE_STRING,
+                      self::TYPE_SET,
+                      self::TYPE_LIST,
+                      self::TYPE_ZSET,
+                      self::TYPE_HASH,
                     );
                     $response = $typeMap[$response];
                     break;
@@ -1272,11 +1272,11 @@ class Credis_Client {
                     break;
                 case 'ping':
                     if ($response) {
-                        if ($response === true) {
-                            $response = isset($args[0]) ? $args[0] : "PONG";
-                        } else if ($response[0] === '+') {
-                            $response = substr($response, 1);
-                        }
+                      if ($response === true) {
+                        $response = isset($args[0]) ? $args[0] : "PONG";
+                      } else if ($response[0] === '+') {
+                        $response = substr($response, 1);
+                      }
                     }
                     break;
                 case 'auth':
@@ -1358,7 +1358,7 @@ class Credis_Client {
             case '+':
                 $response = substr($reply, 1);
                 if($response == 'OK') {
-                    return TRUE;
+                  return TRUE;
                 }
                 if($response == 'QUEUED') {
                     return $returnQueued ? null : true;
@@ -1382,7 +1382,7 @@ class Credis_Client {
 
                 $response = array();
                 for ($i = 0; $i < $count; $i++) {
-                    $response[] = $this->read_reply();
+                        $response[] = $this->read_reply();
                 }
                 break;
             /* Integer reply */
