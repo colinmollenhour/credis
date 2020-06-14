@@ -504,7 +504,7 @@ class Credis_Client {
 
             $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout !== null ? $this->timeout : 2.5, $flags, $context);
 
-            if ($result && $isTls) {
+            if ($result && $this->isTls) {
                 $this->sslMeta = stream_context_get_options($context);
             }
         }
