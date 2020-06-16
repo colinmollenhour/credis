@@ -22,6 +22,10 @@ matrix:
       env:
         - PHPREDIS_VERSION=redis-5.0.0
         - PHPUNIT_VERSION=^7.5
+    - php: 7.4
+      env:
+        - PHPREDIS_VERSION=redis-5.0.0
+        - PHPUNIT_VERSION=^7.5
 
 install:
   - yes '' | pecl install -f $PHPREDIS_VERSION
