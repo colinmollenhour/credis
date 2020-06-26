@@ -44,6 +44,10 @@ $redis = new Credis_Client(/* connection string */);
 
 `tls://host[:port][/persistence_identifier]` 
 
+or 
+
+`tlsv1.2://host[:port][/persistence_identifier]`
+
 #### Enable transport level security (TLS)
 
 Use TLS connection string `tls://127.0.0.1:6379` instead of TCP connection `tcp://127.0.0.1:6379` string in order to enable transport level security.
