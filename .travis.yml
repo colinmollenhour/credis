@@ -32,7 +32,7 @@ install:
   - wget http://download.redis.io/releases/redis-5.0.5.tar.gz
   - tar -xzf redis-5.0.5.tar.gz
   - make -s -C redis-5.0.5 -j4
-  - export PATH=$PATH:$PWD/redis-5.0.5/src/
+  - export PATH=$PWD/redis-5.0.5/src/:$PATH
   - |
     if [ ! -z "$PHPUNIT_VERSION" ]; then
       composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
