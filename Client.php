@@ -423,8 +423,8 @@ class Credis_Client {
                     throw new CredisException('Invalid host format; expected '.$this->scheme.'://host[:port][/persistence_identifier]');
                 }
                 $this->host = $matches[1];
-                $this->port = (int) (isset($matches[3]) ? $matches[3] : 6379);
-                $this->persistent = isset($matches[5]) ? $matches[5] : '';
+                $this->port = (int) (isset($matches[3]) ? $matches[3] : $this->port);
+                $this->persistent = isset($matches[5]) ? $matches[5] : $this->persistent;
             } else {
                 $this->host = $matches[2];
                 $this->port = NULL;
