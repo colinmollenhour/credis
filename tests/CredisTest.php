@@ -578,7 +578,7 @@ class CredisTest extends CredisTestCommon
       }
       catch(CredisException $e)
       {
-          $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+          $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
           $this->credis->close();
       }
       $this->credis = new Credis_Client($this->redisConfig[4]['host'], $this->redisConfig[4]['port'], $this->redisConfig[4]['timeout'], false, 0);
@@ -592,7 +592,6 @@ class CredisTest extends CredisTestCommon
       catch(CredisException $e)
       {
           $this->assertStringStartsWith('NOAUTH Authentication required', $e->getMessage());
-
       }
       try
       {
@@ -600,7 +599,7 @@ class CredisTest extends CredisTestCommon
       }
       catch(CredisException $e)
       {
-          $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+          $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
       }
       $this->assertTrue($this->credis->auth('thepassword'));
       $this->assertTrue($this->credis->set('key','value'));
