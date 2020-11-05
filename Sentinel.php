@@ -250,13 +250,15 @@ class Credis_Sentinel
      * @param int $replicas
      * @param bool $selectRandomSlave
      * @param bool $writeOnly
+     * @param bool $masterOnly
      * @return Credis_Cluster
+     * @throws CredisException
      * @deprecated
      */
-    public function getCluster($name, $db=0, $replicas=128, $selectRandomSlave=true, $writeOnly=false)
+    public function getCluster($name, $db=0, $replicas=128, $selectRandomSlave=true, $writeOnly=false, $masterOnly=false)
     {
         if(!isset($this->_cluster[$name])){
-            $this->_cluster[$name] = $this->createCluster($name, $db, $replicas, $selectRandomSlave, $writeOnly);
+            $this->_cluster[$name] = $this->createCluster($name, $db, $replicas, $selectRandomSlave, $writeOnly, $masterOnly);
         }
         return $this->_cluster[$name];
     }
