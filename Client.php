@@ -56,6 +56,7 @@ class CredisException extends Exception
  * @method bool|array|Credis_Client    config(string $setGet, string $key, string $value = null)
  * @method array|Credis_Client         role()
  * @method array|Credis_Client         time()
+ * @method int|Credis_Client           dbsize()
  *
  * Keys:
  * @method int|Credis_Client           del(string $key)
