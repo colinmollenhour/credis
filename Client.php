@@ -20,7 +20,7 @@
  * @package Credis_Client
  */
 
-if( ! defined('CRLF')) define('CRLF', sprintf('%s%s', chr(13), chr(10)));
+if( ! \defined('CRLF')) \define('CRLF', \sprintf('%s%s', \chr(13), \chr(10)));
 
 /**
  * Credis-specific errors, wraps native Redis errors
@@ -33,7 +33,7 @@ class CredisException extends Exception
 
     public function __construct($message, $code = 0, $exception = NULL)
     {
-        if ($exception && get_class($exception) == 'RedisException' && strpos($message,'read error on connection') === 0) {
+        if ($exception && \get_class($exception) == 'RedisException' && \strpos($message,'read error on connection') === 0) {
             $code = CredisException::CODE_DISCONNECTED;
         }
         parent::__construct($message, $code, $exception);
@@ -539,7 +539,7 @@ class Credis_Client {
                 $timeout = $timeout <= 0 ? 315360000 : $timeout; // Ten-year timeout
                 stream_set_blocking($this->redis, TRUE);
                 stream_set_timeout($this->redis, (int) floor($timeout), ($timeout - floor($timeout)) * 1000000);
-            } else if (defined('Redis::OPT_READ_TIMEOUT')) {
+            } else if (\defined('Redis::OPT_READ_TIMEOUT')) {
                 // supported in phpredis 2.2.3
                 // a timeout value of -1 means reads will not timeout
                 $timeout = $timeout == 0 ? -1 : $timeout;
@@ -614,7 +614,7 @@ class Credis_Client {
 
         // Initialize command map
         if ($map === NULL) {
-            if (is_array($this->renamedCommands)) {
+            if (\is_array($this->renamedCommands)) {
                 $map = $this->renamedCommands;
             } else {
                 $map = array();
@@ -624,16 +624,16 @@ class Credis_Client {
         // Generate and return cached result
         if ( ! isset($map[$command])) {
             // String means all commands are hashed with salted md5
-            if (is_string($this->renamedCommands)) {
+            if (\is_string($this->renamedCommands)) {
                 $map[$command] = md5($this->renamedCommands.$command);
             }
             // Would already be set in $map if it was intended to be renamed
-            else if (is_array($this->renamedCommands)) {
+            else if (\is_array($this->renamedCommands)) {
                 return $command;
             }
             // User-supplied function
-            else if (is_callable($this->renamedCommands)) {
-                $map[$command] = call_user_func($this->renamedCommands, $command);
+            else if (\is_callable($this->renamedCommands)) {
+                $map[$command] = \call_user_func($this->renamedCommands, $command);
             }
         }
         return $map[$command];
@@ -667,7 +667,7 @@ class Credis_Client {
      */
     public function pUnsubscribe()
     {
-    	list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', func_get_args());
+    	list($command, $channel, $subscribedChannels) = $this->__call('punsubscribe', \func_get_args());
     	$this->subscribed = $subscribedChannels > 0;
     	return array($command, $channel, $subscribedChannels);
     }
@@ -732,7 +732,7 @@ class Credis_Client {
         }
 
         // Standalone mode: use infinite loop to subscribe until timeout
-        $patternCount = is_array($patterns) ? count($patterns) : 1;
+        $patternCount = \is_array($patterns) ? \count($patterns) : 1;
         while ($patternCount--) {
             if (isset($status)) {
                 list($command, $pattern, $status) = $this->read_reply();
@@ -760,7 +760,7 @@ class Credis_Client {
      */
     public function unsubscribe()
     {
-    	list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', func_get_args());
+    	list($command, $channel, $subscribedChannels) = $this->__call('unsubscribe', \func_get_args());
     	$this->subscribed = $subscribedChannels > 0;
     	return array($command, $channel, $subscribedChannels);
     }
@@ -778,7 +778,7 @@ class Credis_Client {
         }
 
         // Standalone mode: use infinite loop to subscribe until timeout
-        $channelCount = is_array($channels) ? count($channels) : 1;
+        $channelCount = \is_array($channels) ? \count($channels) : 1;
         while ($channelCount--) {
             if (isset($status)) {
                 list($command, $channel, $status) = $this->read_reply();
@@ -823,18 +823,18 @@ class Credis_Client {
             switch ($name) {
                 case 'eval':
                 case 'evalsha':
-                    $script = array_shift($args);
-                    $keys = (array) array_shift($args);
-                    $eArgs = (array) array_shift($args);
-                    $args = array($script, count($keys), $keys, $eArgs);
+                    $script = \array_shift($args);
+                    $keys = (array) \array_shift($args);
+                    $eArgs = (array) \array_shift($args);
+                    $args = array($script, \count($keys), $keys, $eArgs);
                     break;
                 case 'zinterstore':
                 case 'zunionstore':
-                    $dest = array_shift($args);
-                    $keys = (array) array_shift($args);
-                    $weights = array_shift($args);
-                    $aggregate = array_shift($args);
-                    $args = array($dest, count($keys), $keys);
+                    $dest = \array_shift($args);
+                    $keys = (array) \array_shift($args);
+                    $weights = \array_shift($args);
+                    $aggregate = \array_shift($args);
+                    $args = array($dest, \count($keys), $keys);
                     if ($weights) {
                         $args[] = (array) $weights;
                     }
@@ -845,15 +845,15 @@ class Credis_Client {
                 case 'set':
                     // The php redis module has different behaviour with ttl
                     // https://github.com/phpredis/phpredis#set
-                    if (count($args) === 3 && is_int($args[2])) {
+                    if (\count($args) === 3 && \is_int($args[2])) {
                         $args = array($args[0], $args[1], array('EX', $args[2]));
-                    } elseif (count($args) === 3 && is_array($args[2])) {
+                    } elseif (\count($args) === 3 && \is_array($args[2])) {
                         $tmp_args = $args;
                         $args = array($tmp_args[0], $tmp_args[1]);
                         foreach ($tmp_args[2] as $k=>$v) {
-                            if (is_string($k)) {
+                            if (\is_string($k)) {
                                 $args[] = array($k,$v);
-                            } elseif (is_int($k)) {
+                            } elseif (\is_int($k)) {
                                 $args[] = $v;
                             }
                         }
@@ -904,13 +904,13 @@ class Credis_Client {
                 case 'zrevrangebyscore':
                 case 'zrange':
                 case 'zrevrange':
-                    if (isset($args[3]) && is_array($args[3])) {
+                    if (isset($args[3]) && \is_array($args[3])) {
                         // map options
                         $cArgs = array();
                         if (!empty($args[3]['withscores'])) {
                             $cArgs[] = 'withscores';
                         }
-                        if (($name == 'zrangebyscore' || $name == 'zrevrangebyscore') && array_key_exists('limit', $args[3])) {
+                        if (($name == 'zrangebyscore' || $name == 'zrevrangebyscore') && \array_key_exists('limit', $args[3])) {
                             $cArgs[] = array('limit' => $args[3]['limit']);
                         }
                         $args[3] = $cArgs;
@@ -918,13 +918,13 @@ class Credis_Client {
                     }
                     break;
                 case 'mget':
-                    if (isset($args[0]) && is_array($args[0]))
+                    if (isset($args[0]) && \is_array($args[0]))
                     {
-                        $args = array_values($args[0]);
+                        $args = \array_values($args[0]);
                     }
                     break;
                 case 'hmset':
-                    if (isset($args[1]) && is_array($args[1]))
+                    if (isset($args[1]) && \is_array($args[1]))
                     {
                         $cArgs = array();
                         foreach($args[1] as $id => $value)
@@ -1073,7 +1073,7 @@ class Credis_Client {
                    break;
                 case 'zrange':
                 case 'zrevrange':
-                    if (isset($args[3]) && is_array($args[3]))
+                    if (isset($args[3]) && \is_array($args[3]))
                     {
                         $cArgs = $args[3];
                         $args[3] = !empty($cArgs['withscores']);
@@ -1096,7 +1096,7 @@ class Credis_Client {
                     $args = $cArgs;
                     break;
                 case 'mget':
-                    if(isset($args[0]) && ! is_array($args[0])) {
+                    if(isset($args[0]) && ! \is_array($args[0])) {
                         $args = array($args);
                     }
                     break;
@@ -1105,21 +1105,21 @@ class Credis_Client {
                     break;
                 case 'eval':
                 case 'evalsha':
-                    if (isset($args[1]) && is_array($args[1])) {
+                    if (isset($args[1]) && \is_array($args[1])) {
                         $cKeys = $args[1];
-                    } elseif (isset($args[1]) && is_string($args[1])) {
+                    } elseif (isset($args[1]) && \is_string($args[1])) {
                         $cKeys = array($args[1]);
                     } else {
                         $cKeys = array();
                     }
-                    if (isset($args[2]) && is_array($args[2])) {
+                    if (isset($args[2]) && \is_array($args[2])) {
                         $cArgs = $args[2];
-                    } elseif (isset($args[2]) && is_string($args[2])) {
+                    } elseif (isset($args[2]) && \is_string($args[2])) {
                         $cArgs = array($args[2]);
                     } else {
                         $cArgs = array();
                     }
-                    $args = array($args[0], array_merge($cKeys, $cArgs), count($cKeys));
+                    $args = array($args[0], \array_merge($cKeys, $cArgs), \count($cKeys));
                     break;
                 case 'subscribe':
                 case 'psubscribe':
@@ -1143,7 +1143,7 @@ class Credis_Client {
                         return $this;
                     } else {
                         $this->isMulti = TRUE;
-                        $this->redisMulti = call_user_func_array(array($this->redis, $name), $args);
+                        $this->redisMulti = \call_user_func_array(array($this->redis, $name), $args);
                         return $this;
                     }
                 }
@@ -1162,19 +1162,19 @@ class Credis_Client {
 
                 // Multi and pipeline return self for chaining
                 if($this->isMulti) {
-                    call_user_func_array(array($this->redisMulti, $name), $args);
+                    \call_user_func_array(array($this->redisMulti, $name), $args);
                     return $this;
                 }
 
                 // Send request, retry one time when using persistent connections on the first request only
                 $this->requests++;
                 try {
-                    $response = call_user_func_array(array($this->redis, $name), $args);
+                    $response = \call_user_func_array(array($this->redis, $name), $args);
                 } catch (RedisException $e) {
                     if ($this->persistent && $this->requests == 1 && $e->getMessage() == 'read error on connection') {
                         $this->close(true);
                         $this->connect();
-                        $response = call_user_func_array(array($this->redis, $name), $args);
+                        $response = \call_user_func_array(array($this->redis, $name), $args);
                     } else {
                         throw $e;
                     }
@@ -1233,7 +1233,7 @@ class Credis_Client {
                     }
                     break;
                 case 'auth':
-                    if (is_bool($response) && $response === true){
+                    if (\is_bool($response) && $response === true){
                         $this->redis->clearLastError();
                     }
                 default:
@@ -1269,10 +1269,10 @@ class Credis_Client {
             }
         }
 
-        $commandLen = strlen($command);
+        $commandLen = \strlen($command);
         $lastFailed = FALSE;
         for ($written = 0; $written < $commandLen; $written += $fwrite) {
-            $fwrite = fwrite($this->redis, substr($command, $written));
+            $fwrite = \fwrite($this->redis, \substr($command, $written));
             if ($fwrite === FALSE || ($fwrite == 0 && $lastFailed)) {
                 $this->close(true);
                 throw new CredisException('Failed to write entire command to stream');
@@ -1340,7 +1340,7 @@ class Credis_Client {
                 break;
             /* Integer reply */
             case ':':
-                $response = intval(substr($reply, 1));
+                $response = \intval(substr($reply, 1));
                 break;
             default:
                 throw new CredisException('Invalid response: '.print_r($reply, TRUE));
@@ -1362,13 +1362,13 @@ class Credis_Client {
                 $keys = $values = array();
                 while ($response)
                 {
-                    $keys[] = array_shift($response);
-                    $values[] = array_shift($response);
+                    $keys[] = \array_shift($response);
+                    $values[] = \array_shift($response);
                 }
-                $response = count($keys) ? array_combine($keys, $values) : array();
+                $response = \count($keys) ? \array_combine($keys, $values) : array();
                 break;
             case 'info':
-                $lines = explode(CRLF, trim($response, CRLF));
+                $lines = explode(CRLF, \trim($response, CRLF));
                 $response = array();
                 foreach ($lines as $line)
                 {
@@ -1387,7 +1387,7 @@ class Credis_Client {
                 }
                 break;
             case 'hmget':
-                if (count($arguments) != count($response))
+                if (\count($arguments) !== \count($response))
                 {
                     throw new CredisException(
                         'hmget arguments and response do not match: ' . print_r($arguments, true) . ' ' . print_r(
@@ -1396,21 +1396,21 @@ class Credis_Client {
                     );
                 }
                 // rehydrate results into key => value form
-                $response = array_combine($arguments, $response);
+                $response = \array_combine($arguments, $response);
                 break;
 
             case 'scan':
             case 'sscan':
-                $arguments[0] = intval(array_shift($response));
+                $arguments[0] = \intval(\array_shift($response));
                 $response = empty($response[0]) ? array() : $response[0];
                 break;
             case 'hscan':
             case 'zscan':
-                $arguments[0] = intval(array_shift($response));
+                $arguments[0] = \intval(\array_shift($response));
                 $response = empty($response[0]) ? array() : $response[0];
-                if (!empty($response) && is_array($response))
+                if (!empty($response) && \is_array($response))
                 {
-                    $count = count($response);
+                    $count = \count($response);
                     $out = array();
                     for ($i = 0; $i < $count; $i += 2)
                     {
@@ -1423,7 +1423,7 @@ class Credis_Client {
             case 'zrevrangebyscore':
             case 'zrange':
             case 'zrevrange':
-                if (in_array('withscores', $arguments, true))
+                if (\in_array('withscores', $arguments, true))
                 {
                     // Map array of values into key=>score list like phpRedis does
                     $item = null;
@@ -1457,12 +1457,12 @@ class Credis_Client {
      */
     private static function _prepare_command($args)
     {
-        return sprintf('*%d%s%s%s', count($args), CRLF, implode(CRLF, array_map(array('self', '_map'), $args)), CRLF);
+        return sprintf('*%d%s%s%s', \count($args), CRLF, implode(CRLF, \array_map(array('self', '_map'), $args)), CRLF);
     }
 
     private static function _map($arg)
     {
-        return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
+        return sprintf('$%d%s%s', \strlen($arg), CRLF, $arg);
     }
 
     /**
@@ -1479,11 +1479,11 @@ class Credis_Client {
     private static function _flattenArguments(array $arguments, &$out = array())
     {
         foreach ($arguments as $key => $arg) {
-            if (!is_int($key)) {
+            if (!\is_int($key)) {
                 $out[] = $key;
             }
 
-            if (is_array($arg)) {
+            if (\is_array($arg)) {
                 self::_flattenArguments($arg, $out);
             } else {
                 $out[] = $arg;

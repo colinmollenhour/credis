@@ -226,12 +226,12 @@ class Credis_Sentinel
                     $workingClients[] =  array('host'=>$slave[3],'port'=>$slave[5],'master'=>false,'db'=>$db,'password'=>$this->_password);
                 }
             }
-            if(count($workingClients)>0){
+            if(\count($workingClients)>0){
                 if($selectRandomSlave){
                     if(!$writeOnly){
                         $workingClients[] = array('host'=>$master[3],'port'=>$master[5],'master'=>false,'db'=>$db,'password'=>$this->_password);
                     }
-                    $clients[] = $workingClients[rand(0,count($workingClients)-1)];
+                    $clients[] = $workingClients[\rand(0,\count($workingClients)-1)];
                 } else {
                     $clients = $workingClients;
                 }
@@ -271,8 +271,8 @@ class Credis_Sentinel
      */
     public function __call($name, $args)
     {
-        array_unshift($args,$name);
-        return call_user_func(array($this->_client,'sentinel'),$args);
+        \array_unshift($args,$name);
+        return \call_user_func(array($this->_client,'sentinel'),$args);
     }
 
     /**
