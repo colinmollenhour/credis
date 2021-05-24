@@ -81,14 +81,14 @@ class CredisTest extends CredisTestCommon
         // Array
         $this->assertTrue($this->credis->mSet(array('bar' => 'BAR', 'apple' => 'red')));
         $mGet = $this->credis->mGet(array('foo','bar','empty'));
-        $this->assertTrue(in_array('FOO', $mGet));
-        $this->assertTrue(in_array('BAR', $mGet));
-        $this->assertTrue(in_array('', $mGet));
+        $this->assertTrue(\in_array('FOO', $mGet));
+        $this->assertTrue(\in_array('BAR', $mGet));
+        $this->assertTrue(\in_array('', $mGet));
 
         // Non-array
         $mGet = $this->credis->mGet('foo','bar');
-        $this->assertTrue(in_array('FOO', $mGet));
-        $this->assertTrue(in_array('BAR', $mGet));
+        $this->assertTrue(\in_array('FOO', $mGet));
+        $this->assertTrue(\in_array('BAR', $mGet));
 
         // Delete strings, null response
         $this->assertEquals(2, $this->credis->del('foo','bar'));
@@ -111,8 +111,8 @@ class CredisTest extends CredisTestCommon
 
         // Non-empty set
         $members = $this->credis->sMembers('myset');
-        $this->assertEquals(3, count($members));
-        $this->assertTrue(in_array('Hello', $members));
+        $this->assertEquals(3, \count($members));
+        $this->assertTrue(\in_array('Hello', $members));
 
         // Empty set
         $this->assertEquals(array(), $this->credis->sMembers('noexist'));
@@ -125,110 +125,110 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(1, $this->credis->zAdd('myset', 10, 'And'));
         $this->assertEquals(1, $this->credis->zAdd('myset', 11, 'Goodbye'));
 
-        $this->assertEquals(4, count($this->credis->zRange('myset', 0, 4)));
-        $this->assertEquals(2, count($this->credis->zRange('myset', 0, 1)));
+        $this->assertEquals(4, \count($this->credis->zRange('myset', 0, 4)));
+        $this->assertEquals(2, \count($this->credis->zRange('myset', 0, 1)));
 
         $range = $this->credis->zRange('myset', 1, 2);
-        $this->assertEquals(2, count($range));
+        $this->assertEquals(2, \count($range));
         $this->assertEquals('World', $range[0]);
         $this->assertEquals('And', $range[1]);
 
         $range = $this->credis->zRange('myset', 1, 2, array('withscores' => true));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2, \count($range));
+        $this->assertTrue(\array_key_exists('World', $range));
         $this->assertEquals(2.123, $range['World']);
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
 
         // withscores-option is off
         $range = $this->credis->zRange('myset', 0, 4, array('withscores'));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range)); // expecting numeric array without scores
 
         $range = $this->credis->zRange('myset', 0, 4, array('withscores' => false));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range));
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range));
 
-        $this->assertEquals(4, count($this->credis->zRevRange('myset', 0, 4)));
-        $this->assertEquals(2, count($this->credis->zRevRange('myset', 0, 1)));
+        $this->assertEquals(4, \count($this->credis->zRevRange('myset', 0, 4)));
+        $this->assertEquals(2, \count($this->credis->zRevRange('myset', 0, 1)));
 
         $range = $this->credis->zRevRange('myset', 0, 1, array('withscores' => true));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(2, \count($range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
-        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertTrue(\array_key_exists('Goodbye', $range));
         $this->assertEquals(11, $range['Goodbye']);
 
         // withscores-option is off
         $range = $this->credis->zRevRange('myset', 0, 4, array('withscores'));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range)); // expecting numeric array without scores
 
         $range = $this->credis->zRevRange('myset', 0, 4, array('withscores' => false));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range));
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range));
 
-        $this->assertEquals(4, count($this->credis->zRangeByScore('myset', '-inf', '+inf')));
-        $this->assertEquals(2, count($this->credis->zRangeByScore('myset', '1', '9')));
+        $this->assertEquals(4, \count($this->credis->zRangeByScore('myset', '-inf', '+inf')));
+        $this->assertEquals(2, \count($this->credis->zRangeByScore('myset', '1', '9')));
 
         $range = $this->credis->zRangeByScore('myset', '-inf', '+inf', array('limit' => array(1, 2)));
-        $this->assertEquals(2, count($range));
+        $this->assertEquals(2, \count($range));
         $this->assertEquals('World', $range[0]);
         $this->assertEquals('And', $range[1]);
 
         $range = $this->credis->zRangeByScore('myset', '-inf', '+inf', array('withscores' => true, 'limit' => array(1, 2)));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2, \count($range));
+        $this->assertTrue(\array_key_exists('World', $range));
         $this->assertEquals(2.123, $range['World']);
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
 
         $range = $this->credis->zRangeByScore('myset', 10, '+inf', array('withscores' => true));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(2, \count($range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
-        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertTrue(\array_key_exists('Goodbye', $range));
         $this->assertEquals(11, $range['Goodbye']);
 
         // withscores-option is off
         $range = $this->credis->zRangeByScore('myset', '-inf', '+inf', array('withscores'));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range)); // expecting numeric array without scores
 
         $range = $this->credis->zRangeByScore('myset', '-inf', '+inf', array('withscores' => false));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range));
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(range(0, 3), \array_keys($range));
 
-        $this->assertEquals(4, count($this->credis->zRevRangeByScore('myset', '+inf', '-inf')));
-        $this->assertEquals(2, count($this->credis->zRevRangeByScore('myset', '9', '1')));
+        $this->assertEquals(4, \count($this->credis->zRevRangeByScore('myset', '+inf', '-inf')));
+        $this->assertEquals(2, \count($this->credis->zRevRangeByScore('myset', '9', '1')));
 
         $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('limit' => array(1, 2)));
-        $this->assertEquals(2, count($range));
+        $this->assertEquals(2, \count($range));
         $this->assertEquals('World', $range[1]);
         $this->assertEquals('And', $range[0]);
 
         $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores' => true, 'limit' => array(1, 2)));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2, \count($range));
+        $this->assertTrue(\array_key_exists('World', $range));
         $this->assertEquals(2.123, $range['World']);
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
 
         $range = $this->credis->zRevRangeByScore('myset', '+inf',10, array('withscores' => true));
-        $this->assertEquals(2, count($range));
-        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(2,\count($range));
+        $this->assertTrue(\array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
-        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertTrue(\array_key_exists('Goodbye', $range));
         $this->assertEquals(11, $range['Goodbye']);
 
         // withscores-option is off
         $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores'));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(\range(0, 3), \array_keys($range)); // expecting numeric array without scores
 
         $range = $this->credis->zRevRangeByScore('myset', '+inf', '-inf', array('withscores' => false));
-        $this->assertEquals(4, count($range));
-        $this->assertEquals(range(0, 3), array_keys($range));
+        $this->assertEquals(4, \count($range));
+        $this->assertEquals(\range(0, 3), \array_keys($range));
 
 
         // testing zunionstore (intersection of sorted sets)
@@ -242,26 +242,26 @@ class CredisTest extends CredisTestCommon
 
         $this->credis->zUnionStore('myset3', array('myset1', 'myset2'));
         $range = $this->credis->zRangeByScore('myset3', '-inf', '+inf', array('withscores' => true));
-        $this->assertEquals(4, count($range));
-        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(4, \count($range));
+        $this->assertTrue(\array_key_exists('key1', $range));
         $this->assertEquals(25, $range['key1']);
-        $this->assertTrue(array_key_exists('key_not_in_myset1', $range));
+        $this->assertTrue(\array_key_exists('key_not_in_myset1', $range));
         $this->assertEquals(15, $range['key_not_in_myset1']);
 
         // testing zunionstore AGGREGATE option
         $this->credis->zUnionStore('myset4', array('myset1', 'myset2'), array('aggregate' => 'max'));
         $range = $this->credis->zRangeByScore('myset4', '-inf', '+inf', array('withscores' => true));
-        $this->assertEquals(4, count($range));
-        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(4, \count($range));
+        $this->assertTrue(\array_key_exists('key1', $range));
         $this->assertEquals(15, $range['key1']);
-        $this->assertTrue(array_key_exists('key2', $range));
+        $this->assertTrue(\array_key_exists('key2', $range));
         $this->assertEquals(15, $range['key2']);
 
         // testing zunionstore WEIGHTS option
         $this->credis->zUnionStore('myset5', array('myset1', 'myset2'), array('weights' => array(2, 4)));
         $range = $this->credis->zRangeByScore('myset5', '-inf', '+inf', array('withscores' => true));
-        $this->assertEquals(4, count($range));
-        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(4, \count($range));
+        $this->assertTrue(\array_key_exists('key1', $range));
         $this->assertEquals(80, $range['key1']);
     }
 
@@ -453,7 +453,7 @@ class CredisTest extends CredisTestCommon
                 ->set('a', 3)
                 ->lpop('a')
                 ->exec();
-        $this->assertEquals(2, count($reply));
+        $this->assertEquals(2, \count($reply));
         $this->assertEquals(TRUE, $reply[0]);
         $this->assertFalse($reply[1]);
     }
@@ -503,7 +503,7 @@ class CredisTest extends CredisTestCommon
             });
             $this->fail('pSubscribe should not return.');
         } catch (CredisException $e) {
-            $this->assertEquals($timeout, intval(microtime(true) - $time));
+            $this->assertEquals($timeout, \intval(microtime(true) - $time));
             if ($this->useStandalone) { // phpredis does not distinguish between timed out and disconnected
                 $this->assertEquals($e->getCode(), CredisException::CODE_TIMED_OUT);
             } else {
@@ -524,7 +524,7 @@ class CredisTest extends CredisTestCommon
             });
             $this->fail('subscribe should not return.');
         } catch (CredisException $e) {
-            $this->assertEquals($timeout, intval(microtime(true) - $time));
+            $this->assertEquals($timeout, \intval(microtime(true) - $time));
             if ($this->useStandalone) { // phpredis does not distinguish between timed out and disconnected
                 $this->assertEquals($e->getCode(), CredisException::CODE_TIMED_OUT);
             } else {
@@ -764,7 +764,7 @@ class CredisTest extends CredisTestCommon
             }
         }
         while($iterator);
-        $this->assertEquals(count($seen), 100);
+        $this->assertEquals(\count($seen), 100);
     }
 
   public function testPing()
