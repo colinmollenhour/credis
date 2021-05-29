@@ -809,6 +809,25 @@ class Credis_Client {
       return $this->__call('ping', $name ? array($name) : array());
     }
 
+  /**
+   * @param string $command
+   * @param array $args
+   *
+   * @return array|Credis_Client
+   */
+   public function rawCommand($command, array $args)
+   {
+     if($this->standalone)
+     {
+       return $this->__call($command, $args);
+     }
+     else
+     {
+       \array_unshift($args, $command);
+       return $this->__call('rawCommand', $args);
+     }
+   }
+
     public function __call($name, $args)
     {
         // Lazy connection
