@@ -11,7 +11,7 @@
  * - Uses phpredis library if extension is installed for better performance.
  * - Establishes connection lazily.
  * - Supports tcp and unix sockets.
- * - Reconnects automatically unless a watch or transaction is in progress.
+ * - Reconnects automatically unle  ss a watch or transaction is in progress.
  * - Can set automatic retry connection attempts for iffy Redis connections.
  *
  * @author Colin Mollenhour <colin@mollenhour.com>
