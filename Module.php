@@ -63,6 +63,6 @@ class Credis_Module
             throw new \LogicException('Module must be set.');
         }
 
-        return call_user_func(array($this->client, sprintf('%s.%s', $this->moduleName, $name)), $args);
+        return \call_user_func(array($this->client, sprintf('%s.%s', $this->moduleName, $name)), $args);
     }
 }

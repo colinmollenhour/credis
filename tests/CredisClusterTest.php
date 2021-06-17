@@ -13,7 +13,7 @@ class CredisClusterTest extends CredisTestCommon
   {
     parent::setUp();
 
-    $clients = array_slice($this->redisConfig,0,4);
+    $clients = \array_slice($this->redisConfig,0,4);
     $this->cluster = new Credis_Cluster($clients,2,$this->useStandalone);
   }
 
@@ -33,30 +33,30 @@ class CredisClusterTest extends CredisTestCommon
   public function testKeyHashing()
   {
       $this->tearDown();
-      $this->cluster = new Credis_Cluster(array_slice($this->redisConfig, 0, 3), 2, $this->useStandalone);
+      $this->cluster = new Credis_Cluster(\array_slice($this->redisConfig, 0, 3), 2, $this->useStandalone);
       $keys = array();
       $lines = explode("\n", file_get_contents("keys.test"));
       foreach ($lines as $line) {
           $pair = explode(':', trim($line));
-          if (count($pair) >= 2) {
+          if (\count($pair) >= 2) {
               $keys[$pair[0]] = $pair[1];
           }
       }
       foreach ($keys as $key => $value) {
           $this->assertTrue($this->cluster->set($key, $value));
       }
-      $this->cluster = new Credis_Cluster(array_slice($this->redisConfig, 0, 4), 2, true, $this->useStandalone);
+      $this->cluster = new Credis_Cluster(\array_slice($this->redisConfig, 0, 4), 2, true, $this->useStandalone);
       $hits = 0;
       foreach ($keys as $key => $value) {
           if ($this->cluster->all('get',$key)) {
               $hits++;
           }
       }
-      $this->assertEquals(count($keys),$hits);
+      $this->assertEquals(\count($keys),$hits);
   }
   public function testAlias()
   {
-      $slicedConfig = array_slice($this->redisConfig, 0, 4);
+      $slicedConfig = \array_slice($this->redisConfig, 0, 4);
       foreach($slicedConfig as $config) {
           $this->assertEquals($config['port'],$this->cluster->client($config['alias'])->getPort());
       }

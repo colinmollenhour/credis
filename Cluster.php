@@ -87,7 +87,7 @@ class Credis_Cluster
     $client = null;
     foreach ($servers as $server)
     {
-      if(is_array($server)){
+      if(\is_array($server)){
           $client = new Credis_Client(
             $server['host'],
             $server['port'],
@@ -116,7 +116,7 @@ class Credis_Cluster
       $this->clients[] = $client;
       for ($replica = 0; $replica <= $this->replicas; $replica++) {
           $md5num = hexdec(substr(md5($client->getHost().':'.$client->getPort().'-'.$replica),0,7));
-          $this->ring[$md5num] = count($this->clients)-1;
+          $this->ring[$md5num] = \count($this->clients)-1;
       }
     }
     ksort($this->ring, SORT_NUMERIC);
@@ -127,13 +127,13 @@ class Credis_Cluster
       'SAVE',      'BGSAVE',  'LASTSAVE', 'SHUTDOWN',
       'INFO',      'MONITOR', 'SLAVEOF'
     ));
-    if($this->masterClient !== null && count($this->clients()) == 0){
+    if($this->masterClient !== null && \count($this->clients()) == 0){
         $this->clients[] = $this->masterClient;
         for ($replica = 0; $replica <= $this->replicas; $replica++) {
-            $md5num = hexdec(substr(md5($this->masterClient->getHost().':'.$this->masterClient->getHost().'-'.$replica),0,7));
-            $this->ring[$md5num] = count($this->clients)-1;
+            $md5num = hexdec(\substr(md5($this->masterClient->getHost().':'.$this->masterClient->getHost().'-'.$replica),0,7));
+            $this->ring[$md5num] = \count($this->clients)-1;
         }
-        $this->nodes = array_keys($this->ring);
+        $this->nodes = \array_keys($this->ring);
     }
   }
 
@@ -154,10 +154,10 @@ class Credis_Cluster
     if(!$writeOnly){
         $this->clients[] = $this->masterClient;
         for ($replica = 0; $replica <= $this->replicas; $replica++) {
-            $md5num = hexdec(substr(md5($this->masterClient->getHost().':'.$this->masterClient->getHost().'-'.$replica),0,7));
-            $this->ring[$md5num] = count($this->clients)-1;
+            $md5num = hexdec(\substr(md5($this->masterClient->getHost().':'.$this->masterClient->getHost().'-'.$replica),0,7));
+            $this->ring[$md5num] = \count($this->clients)-1;
         }
-        $this->nodes = array_keys($this->ring);
+        $this->nodes = \array_keys($this->ring);
     }
     return $this;
   }
@@ -170,7 +170,7 @@ class Credis_Cluster
    */
   public function client($alias)
   {
-    if (is_int($alias) && isset($this->clients[$alias])) {
+    if (\is_int($alias) && isset($this->clients[$alias])) {
       return $this->clients[$alias];
     }
     else if (isset($this->aliases[$alias])) {
@@ -196,11 +196,11 @@ class Credis_Cluster
    */
   public function all()
   {
-    $args = func_get_args();
-    $name = array_shift($args);
+    $args = \func_get_args();
+    $name = \array_shift($args);
     $results = array();
     foreach($this->clients as $client) {
-      $results[] = call_user_func_array([$client, $name], $args);
+      $results[] = \call_user_func_array([$client, $name], $args);
     }
     return $results;
   }
@@ -236,12 +236,12 @@ class Credis_Cluster
   {
     if($this->masterClient !== null && !$this->isReadOnlyCommand($name)){
         $client = $this->masterClient;
-    }elseif (count($this->clients()) == 1 || isset($this->dont_hash[strtoupper($name)]) || !isset($args[0])) {
+    }elseif (\count($this->clients()) == 1 || isset($this->dont_hash[strtoupper($name)]) || !isset($args[0])) {
       $client = $this->clients[0];
     }
     else {
       $hashKey = $args[0];
-      if (is_array($hashKey)) {
+      if (\is_array($hashKey)) {
         $hashKey = join('|', $hashKey);
       }
       $client = $this->byHash($hashKey);
@@ -250,7 +250,7 @@ class Credis_Cluster
     if ($client->getSelectedDb() != $this->selectedDb) {
       $client->select($this->selectedDb);
     }
-    return call_user_func_array([$client, $name], $args);
+    return \call_user_func_array([$client, $name], $args);
   }
 
   /**
@@ -261,9 +261,9 @@ class Credis_Cluster
    */
   public function hash($key)
   {
-    $needle = hexdec(substr(md5($key),0,7));
+    $needle = hexdec(\substr(md5($key),0,7));
     $server = $min = 0;
-    $max = count($this->nodes) - 1;
+    $max = \count($this->nodes) - 1;
     while ($max >= $min) {
       $position = (int) (($min + $max) / 2);
       $server = $this->nodes[$position];
@@ -337,7 +337,7 @@ class Credis_Cluster
           'TIME' => true,
           'SORT' => true,
       );
-      return array_key_exists(strtoupper($command), $readOnlyCommands);
+      return \array_key_exists(strtoupper($command), $readOnlyCommands);
   }
 }
 
