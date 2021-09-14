@@ -56,6 +56,7 @@ class CredisException extends Exception
  * @method bool|array|Credis_Client    config(string $setGet, string $key, string $value = null)
  * @method array|Credis_Client         role()
  * @method array|Credis_Client         time()
+ * @method int|Credis_Client           dbsize()
  *
  * Keys:
  * @method int|Credis_Client           del(string $key)
@@ -168,12 +169,15 @@ class CredisException extends Exception
  */
 class Credis_Client {
 
+    const VERSION          = '1.11.4';
+
     const TYPE_STRING      = 'string';
     const TYPE_LIST        = 'list';
     const TYPE_SET         = 'set';
     const TYPE_ZSET        = 'zset';
     const TYPE_HASH        = 'hash';
     const TYPE_NONE        = 'none';
+
     const FREAD_BLOCK_SIZE = 8192;
 
     /**
@@ -344,7 +348,7 @@ class Credis_Client {
         $this->authPassword = $password;
         $this->selectedDb = (int)$db;
         $this->convertHost();
-        if ($this->isTls) {
+        if ($this->isTls && !$this->standalone && version_compare(phpversion('redis'),'5.3.0','<')) {
             // PHP Redis extension doesn't work with TLS
             $this->standalone = true;
         }
@@ -447,8 +451,8 @@ class Credis_Client {
                     throw new CredisException('Invalid host format; expected '.$this->scheme.'://host[:port][/persistence_identifier]');
                 }
                 $this->host = $matches[1];
-                $this->port = (int) (isset($matches[3]) ? $matches[3] : 6379);
-                $this->persistent = isset($matches[5]) ? $matches[5] : '';
+                $this->port = (int) (isset($matches[3]) ? $matches[3] : $this->port);
+                $this->persistent = isset($matches[5]) ? $matches[5] : $this->persistent;
             } else {
                 $this->host = $matches[2];
                 $this->port = NULL;
@@ -846,6 +850,25 @@ class Credis_Client {
     {
       return $this->__call('ping', $name ? array($name) : array());
     }
+
+  /**
+   * @param string $command
+   * @param array $args
+   *
+   * @return array|Credis_Client
+   */
+   public function rawCommand($command, array $args)
+   {
+     if($this->standalone)
+     {
+       return $this->__call($command, $args);
+     }
+     else
+     {
+       \array_unshift($args, $command);
+       return $this->__call('rawCommand', $args);
+     }
+   }
 
     public function __call($name, $args)
     {
@@ -1270,6 +1293,10 @@ class Credis_Client {
                       }
                     }
                     break;
+                case 'auth':
+                    if (is_bool($response) && $response === true){
+                        $this->redis->clearLastError();
+                    }
                 default:
                     $error = $this->redis->getLastError();
                     $this->redis->clearLastError();
