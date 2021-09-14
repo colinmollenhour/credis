@@ -348,8 +348,8 @@ class Credis_Client {
         $this->authPassword = $password;
         $this->selectedDb = (int)$db;
         $this->convertHost();
+        // PHP Redis extension support TLS since 5.3.0
         if ($this->isTls && !$this->standalone && version_compare(phpversion('redis'),'5.3.0','<')) {
-            // PHP Redis extension doesn't work with TLS
             $this->standalone = true;
         }
     }
