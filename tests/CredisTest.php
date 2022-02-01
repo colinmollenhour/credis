@@ -620,6 +620,73 @@ class CredisTest extends CredisTestCommon
       $this->assertTrue($this->credis->set('key','value'));
   }
 
+  /**
+   * @group Auth
+   */
+  public function testUsernameAndPassword()
+  {
+      $this->tearDown();
+      $this->assertArrayHasKey('password',$this->redisConfig[7]);
+      $this->credis = new Credis_Client($this->redisConfig[7]['host'], $this->redisConfig[7]['port'], $this->redisConfig[7]['timeout'], false, 0, $this->redisConfig[7]['password'], $this->redisConfig[7]['username']);
+      if ($this->useStandalone) {
+          $this->credis->forceStandalone();
+      }
+      $this->assertInstanceOf('Credis_Client',$this->credis->connect());
+      $this->assertTrue($this->credis->set('key','value'));
+      $this->credis->close();
+      $this->credis = new Credis_Client($this->redisConfig[7]['host'], $this->redisConfig[7]['port'], $this->redisConfig[7]['timeout'], false, 0, 'wrongpassword', $this->redisConfig[7]['username']);
+      if ($this->useStandalone) {
+          $this->credis->forceStandalone();
+      }
+      try
+      {
+          $this->credis->connect();
+          $this->fail('connect should fail with wrong password');
+      }
+      catch(CredisException $e)
+      {
+          if (strpos($e->getMessage(), 'username') !== false)
+          {
+            $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+          }
+          else
+          {
+            $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+          }
+
+          $this->credis->close();
+      }
+      $this->credis = new Credis_Client($this->redisConfig[7]['host'], $this->redisConfig[7]['port'], $this->redisConfig[7]['timeout'], false, 0);
+      if ($this->useStandalone) {
+          $this->credis->forceStandalone();
+      }
+      try
+      {
+          $this->credis->set('key', 'value');
+      }
+      catch(CredisException $e)
+      {
+          $this->assertStringStartsWith('NOAUTH Authentication required', $e->getMessage());
+      }
+      try
+      {
+          $this->credis->auth('anotherwrongpassword');
+      }
+      catch(CredisException $e)
+      {
+        if (strpos($e->getMessage(), 'username') !== false)
+        {
+          $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+        }
+        else
+        {
+          $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+        }
+      }
+      $this->assertTrue($this->credis->auth('thepassword'));
+      $this->assertTrue($this->credis->set('key','value'));
+  }
+
   public function testGettersAndSetters()
   {
       $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
