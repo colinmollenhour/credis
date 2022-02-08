@@ -1162,6 +1162,9 @@ class Credis_Client {
                     // allow phpredis to see the caller's reference
                     //$param_ref =& $args[0];
                     break;
+                case 'auth':
+                    $args = array($args);
+                    break;
                 default:
                     // Flatten arguments
                     $args = self::_flattenArguments($args);
