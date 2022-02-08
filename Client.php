@@ -481,8 +481,8 @@ class Credis_Client {
             try
             {
                 $result = $this->persistent
-                    ? $this->redis->pconnect($this->host, $this->port, $socketTimeout, $this->persistent)
-                    : $this->redis->connect($this->host, $this->port, $socketTimeout);
+                    ? $this->redis->pconnect($this->scheme.'://'.$this->host, $this->port, $socketTimeout, $this->persistent)
+                    : $this->redis->connect($this->scheme.'://'.$this->host, $this->port, $socketTimeout);
             }
             catch(Exception $e)
             {
@@ -647,12 +647,12 @@ class Credis_Client {
 
     /**
      * @param string $password
-     * @param string $username
+     * @param string|null $username
      * @return bool
      */
     public function auth($password, $username = null)
     {
-        if (!is_null($username)) {
+        if ($username !== null) {
             $response = $this->__call('auth', array($username, $password));
             $this->authUsername= $username;
         } else {
@@ -1201,11 +1201,7 @@ class Credis_Client {
                 // Send request, retry one time when using persistent connections on the first request only
                 $this->requests++;
                 try {
-                    if($name == 'auth') {
-                        $response = call_user_func(array($this->redis, $name), $args);
-                    } else {
-                        $response = call_user_func_array(array($this->redis, $name), $args);
-                    }
+                    $response = call_user_func_array(array($this->redis, $name), $args);
                 } catch (RedisException $e) {
                     if ($this->persistent && $this->requests == 1 && $e->getMessage() == 'read error on connection') {
                         $this->close(true);
