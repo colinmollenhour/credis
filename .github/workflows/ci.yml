@@ -35,7 +35,7 @@ jobs:
         extensions: redis
 
     - name: Setup Redis
-      run: sudo apt install redis -y ; sudo systemctl stop redis\* ; redis-cli --version
+      run: sudo add-apt-repository ppa:redislabs/redis -y -u ; sudo apt install redis -y ; sudo systemctl stop redis\* ; redis-cli --version
 
     - name: Install phpunit
       env:
