@@ -2,3 +2,4 @@
 vendor
 phpunit.phar
 phpunit_*.log
+/.phpunit.result.cache

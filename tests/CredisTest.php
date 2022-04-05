@@ -746,11 +746,12 @@ class CredisTest extends CredisTestCommon
    */
   public function testConnectionStringsSocket()
   {
-      $this->credis = new Credis_Client(realpath(__DIR__).'/redis.sock',0,null,'persistent');
+      $this->credis = new Credis_Client(realpath(__DIR__).'/redis.sock');
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
       $this->credis->connect();
+      $this->assertTrue($this->credis->isConnected());
       $this->credis->set('key','value');
       $this->assertEquals('value',$this->credis->get('key'));
   }
@@ -775,6 +776,9 @@ class CredisTest extends CredisTestCommon
       }
   }
 
+  /**
+   * @group UnixSocket
+   */
   public function testInvalidUnixSocketConnectionString()
   {
       $this->credis->close();

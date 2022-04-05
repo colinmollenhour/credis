@@ -6,19 +6,6 @@ class CredisStandaloneTest extends CredisTest
 {
     protected $useStandalone = TRUE;
 
-  /**
-   * @group UnixSocket
-   */
-  public function testInvalidPersistentConnectionOnUnixSocket()
-  {
-      $this->credis->close();
-      $this->credis = new Credis_Client('unix://'.realpath(__DIR__).'/redis.sock',0,null,'persistent');
-      $this->credis->forceStandalone();
-      //$this->setExpectedException('CredisException','Persistent connections to UNIX sockets are not supported in standalone mode.');
-      $this->credis->connect();
-      $this->assertTrue($this->credis->isConnected());
-  }
-
   public function testPersistentConnectionsOnStandAloneTcpConnection()
   {
       $this->credis->close();
