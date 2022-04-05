@@ -334,8 +334,12 @@ class Credis_Client {
         $this->authUsername = $username;
         $this->selectedDb = (int)$db;
         $this->convertHost();
-        // PHP Redis extension support TLS since 5.3.0
-        if ($this->scheme == 'tls' && !$this->standalone && version_compare(phpversion('redis'),'5.3.0','<')){
+        // PHP Redis extension support TLS/ACL AUTH since 5.3.0
+        if ((
+              $this->scheme === 'tls'
+              || $this->authUsername !== null
+            )
+            && !$this->standalone && version_compare(phpversion('redis'),'5.3.0','<')){
             $this->standalone = true;
         }
     }
