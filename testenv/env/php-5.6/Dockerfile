@@ -5,7 +5,7 @@ ENV redis_version 4.0.11
 RUN apt-get update && \
     apt-get install -y wget
 
-RUN wget --no-check-certificate https://phar.phpunit.de/phpunit-${phpunit_verison}.phar && \
+RUN wget https://phar.phpunit.de/phpunit-${phpunit_verison}.phar && \
     chmod +x phpunit-${phpunit_verison}.phar && \
     mv phpunit-${phpunit_verison}.phar /usr/local/bin/phpunit
 
