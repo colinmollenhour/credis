@@ -481,8 +481,8 @@ class Credis_Client {
             try
             {
                 $result = $this->persistent
-                    ? $this->redis->pconnect($this->scheme.'://'.$this->host, (int)$this->port, $socketTimeout, $this->persistent)
-                    : $this->redis->connect($this->scheme.'://'.$this->host, (int)$this->port, $socketTimeout);
+                    ? $this->redis->pconnect($this->host, (int)$this->port, $socketTimeout, $this->persistent)
+                    : $this->redis->connect($this->host, (int)$this->port, $socketTimeout);
             }
             catch(Exception $e)
             {
