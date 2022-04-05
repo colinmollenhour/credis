@@ -1167,7 +1167,8 @@ class Credis_Client {
                     //$param_ref =& $args[0];
                     break;
                 case 'auth':
-                    $args = array($args);
+                    // For phpredis pre-v5.3, the type signature is string, not array|string
+                    $args = is_array($args) && count($args) ? $args : array($args);
                     break;
                 default:
                     // Flatten arguments
