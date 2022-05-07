@@ -707,7 +707,11 @@ class CredisTest extends CredisTestCommon
           $this->credis->forceStandalone();
       }
       $this->credis->setMaxConnectRetries(1);
-      $this->setExpectedExceptionShim('CredisException','Connection to Redis localhost:12345 failed after 2 failures.');
+      if ($this->useStandalone) {
+        $this->setExpectedExceptionShim('CredisException','Connection to Redis standalone tcp://localhost:12345 failed after 2 failures.');
+      } else {
+        $this->setExpectedExceptionShim('CredisException','Connection to Redis tcp://localhost:12345 failed after 2 failures.');
+      }
       $this->credis->connect();
   }
 
