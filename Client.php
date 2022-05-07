@@ -194,10 +194,16 @@ class Credis_Client {
     protected $host;
 
     /**
-     * Scheme of the Redis server (tcp, tls, unix)
+     * Scheme of the Redis server (tcp, tls, tlsv1.2, unix)
      * @var string
      */
     protected $scheme;
+
+    /**
+     * SSL Meta information
+     * @var string
+     */
+    protected $sslMeta;
 
     /**
      * Port on which the Redis server is running
@@ -317,6 +323,21 @@ class Credis_Client {
 
 
     /**
+     * @var bool
+     */
+    protected $isTls = false;
+
+    /**
+     * Gets Useful Meta debug information about the SSL
+     *
+     * @return string
+     */
+    public function getSslMeta()
+    {
+        return $this->sslMeta;
+    }
+
+    /**
      * Creates a Redisent connection to the Redis server on host {@link $host} and port {@link $port}.
      * $host may also be a path to a unix socket or a string in the form of tcp://[hostname]:[port] or unix://[path]
      *
@@ -347,7 +368,7 @@ class Credis_Client {
         // PHP Redis extension support TLS/ACL AUTH since 5.3.0
         $this->oldPhpRedis = (bool)version_compare(phpversion('redis'),'5.3.0','<');
         if ((
-              $this->scheme === 'tls'
+              $this->isTls
               || $this->authUsername !== null
             )
             && !$this->standalone && $this->oldPhpRedis){
@@ -448,8 +469,9 @@ class Credis_Client {
 
     protected function convertHost()
     {
-        if (preg_match('#^(tcp|tls|unix)://(.*)$#', $this->host, $matches)) {
-            if($matches[1] == 'tcp' || $matches[1] == 'tls') {
+        if (preg_match('#^(tcp|tls|tlsv\d(?:\.\d)?|unix)://(.+)$#', $this->host, $matches)) {
+            $this->isTls = strpos($matches[1], 'tls') === 0;
+            if($this->isTls || $matches[1] === 'tcp') {
                 $this->scheme = $matches[1];
                 if ( ! preg_match('#^([^:]+)(:([0-9]+))?(/(.+))?$#', $matches[2], $matches)) {
                     throw new CredisException('Invalid host format; expected '.$this->scheme.'://host[:port][/persistence_identifier]');
@@ -474,6 +496,7 @@ class Credis_Client {
             $this->scheme = 'tcp';
         }
     }
+
     /**
      * @throws CredisException
      * @return Credis_Client
@@ -484,7 +507,7 @@ class Credis_Client {
             return $this;
         }
         $this->close(true);
-        $tlsOptions = $this->scheme === 'tls' ? $this->tlsOptions : [];
+        $tlsOptions = $this->isTls ? $this->tlsOptions : [];
         if ($this->standalone) {
             $flags = STREAM_CLIENT_CONNECT;
             $remote_socket = $this->port === NULL
@@ -495,9 +518,22 @@ class Credis_Client {
                 $remote_socket .= '/'.$this->persistent;
                 $flags = $flags | STREAM_CLIENT_PERSISTENT;
             }
+            if ($this->isTls) {
+                $tlsOptions = array_merge($tlsOptions, [
+                    'capture_peer_cert' => true,
+                    'capture_peer_cert_chain' => true,
+                    'capture_session_meta' => true,
+                ]);
+            }
+
             // passing $context as null errors before php 8.0
             $context = stream_context_create(['ssl' => $tlsOptions]);
+
             $result = $this->redis = @stream_socket_client($remote_socket, $errno, $errstr, $this->timeout !== null ? $this->timeout : 2.5, $flags, $context);
+
+            if ($result && $this->isTls) {
+                $this->sslMeta = stream_context_get_options($context);
+            }
         }
         else {
             if ( ! $this->redis) {
@@ -543,7 +579,13 @@ class Credis_Client {
             }
             $failures = $this->connectFailures;
             $this->connectFailures = 0;
-            throw new CredisException("Connection to Redis {$this->host}:{$this->port} failed after $failures failures." . (isset($errno) && isset($errstr) ? "Last Error : ({$errno}) {$errstr}" : ""));
+            throw new CredisException(sprintf("Connection to Redis%s %s://%s failed after %s failures.%s",
+                $this->standalone ? ' standalone' : '',
+                $this->scheme,
+                $this->host.($this->port ? ':'.$this->port : ''),
+                $failures,
+                (isset($errno) && isset($errstr) ? "Last Error : ({$errno}) {$errstr}" : "")
+            ));
         }
 
         $this->connectFailures = 0;

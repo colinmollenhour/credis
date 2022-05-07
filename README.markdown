@@ -44,6 +44,10 @@ $redis = new Credis_Client(/* connection string */);
 
 `tls://host[:port][/persistence_identifier]` 
 
+or 
+
+`tlsv1.2://host[:port][/persistence_identifier]`
+
 Recent versions of redis do not support the protocols/cyphers that older versions of php default to, which may result in cryptic connection failures.
 
 #### Enable transport level security (TLS)
