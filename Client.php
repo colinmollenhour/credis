@@ -469,8 +469,8 @@ class Credis_Client {
 
     protected function convertHost()
     {
-        if (preg_match('#^(tcp|tls|tlsv\d(?:\.\d)?|unix)://(.+)$#', $this->host, $matches)) {
-            $this->isTls = strpos($matches[1], 'tls') === 0;
+        if (preg_match('#^(tcp|tls|ssl|tlsv\d(?:\.\d)?|unix)://(.+)$#', $this->host, $matches)) {
+            $this->isTls = strpos($matches[1], 'tls') === 0 || strpos($matches[1], 'ssl') === 0;
             if($this->isTls || $matches[1] === 'tcp') {
                 $this->scheme = $matches[1];
                 if ( ! preg_match('#^([^:]+)(:([0-9]+))?(/(.+))?$#', $matches[2], $matches)) {
