@@ -53,6 +53,11 @@ class Credis_Sentinel
      */
     protected $_password = '';
     /**
+     * Store the AUTH username used by Credis_Client instances (Redis v6+)
+     * @var string
+     */
+    protected $_username = '';
+    /**
      * @var null|float
      */
     protected $_timeout;
@@ -72,11 +77,12 @@ class Credis_Sentinel
      * @param string $password (deprecated - use setClientPassword)
      * @throws CredisException
      */
-    public function __construct(Credis_Client $client, $password = NULL)
+    public function __construct(Credis_Client $client, $password = NULL, $username = NULL)
     {
         $client->forceStandalone(); // SENTINEL command not currently supported by phpredis
         $this->_client     = $client;
         $this->_password   = $password;
+        $this->_username   = $username;
         $this->_timeout    = NULL;
         $this->_persistent = '';
         $this->_db         = 0;
@@ -131,6 +137,16 @@ class Credis_Sentinel
     }
 
     /**
+     * @param null|string $username
+     * @return $this
+     */
+    public function setClientUsername($username)
+    {
+      $this->_username = $username;
+      return $this;
+    }
+
+    /**
      * @return Credis_Sentinel
      * @deprecated
      */
@@ -153,7 +169,7 @@ class Credis_Sentinel
         if(!isset($master[0]) || !isset($master[1])){
             throw new CredisException('Master not found');
         }
-        return new Credis_Client($master[0], $master[1], $this->_timeout, $this->_persistent, $this->_db, $this->_password);
+        return new Credis_Client($master[0], $master[1], $this->_timeout, $this->_persistent, $this->_db, $this->_password, $this->_username);
     }
 
     /**
@@ -185,7 +201,7 @@ class Credis_Sentinel
                 throw new CredisException('Can\' retrieve slave status');
             }
             if(!strstr($slave[9],'s_down') && !strstr($slave[9],'disconnected')) {
-                $workingSlaves[] = new Credis_Client($slave[3], $slave[5], $this->_timeout, $this->_persistent, $this->_db, $this->_password);
+                $workingSlaves[] = new Credis_Client($slave[3], $slave[5], $this->_timeout, $this->_persistent, $this->_db, $this->_password, $this->_username);
             }
         }
         return $workingSlaves;
