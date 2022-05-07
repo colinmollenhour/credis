@@ -69,6 +69,14 @@ class Credis_Sentinel
      * @var int
      */
     protected $_db;
+    /**
+     * @var string|null
+     */
+    protected $_replicaCmd = null;
+    /**
+     * @var string|null
+     */
+    protected $_redisVersion = null;
 
   /**
      * Connect with a Sentinel node. Sentinel will do the master and slave discovery
@@ -144,6 +152,27 @@ class Credis_Sentinel
     {
       $this->_username = $username;
       return $this;
+    }
+
+    /**
+     * @param null|string $replicaCmd
+     * @return $this
+     */
+    public function setReplicaCommand($replicaCmd)
+    {
+      $this->_replicaCmd = $replicaCmd;
+      return $this;
+    }
+
+    public function detectRedisVersion()
+    {
+      if ($this->_redisVersion !== null && $this->_replicaCmd !== null) {
+        return;
+      }
+      $serverInfo = $this->info('server');
+      $this->_redisVersion =  $serverInfo['redis_version'];
+      // Redis v7+ renames the replica command to 'replicas' instead of 'slaves'
+      $this->_replicaCmd = version_compare($this->_redisVersion, '7.0.0', '>=') ? 'replicas' : 'slaves';
     }
 
     /**
@@ -332,7 +361,10 @@ class Credis_Sentinel
      */
     public function slaves($name)
     {
-        return $this->_client->sentinel('slaves',$name);
+        if ($this->_replicaCmd === null) {
+          $this->detectRedisVersion();
+        }
+        return $this->_client->sentinel($this->_replicaCmd,$name);
     }
 
     /**
