@@ -52,8 +52,20 @@ class Credis_Sentinel
      * @var string
      */
     protected $_password = '';
-
     /**
+     * @var null|float
+     */
+    protected $_timeout;
+    /**
+     * @var string
+     */
+    protected $_persistent;
+    /**
+     * @var int
+     */
+    protected $_db;
+
+  /**
      * Connect with a Sentinel node. Sentinel will do the master and slave discovery
      *
      * @param Credis_Client $client
@@ -62,9 +74,6 @@ class Credis_Sentinel
      */
     public function __construct(Credis_Client $client, $password = NULL)
     {
-        if(!$client instanceof Credis_Client){
-            throw new CredisException('Sentinel client should be an instance of Credis_Client');
-        }
         $client->forceStandalone(); // SENTINEL command not currently supported by phpredis
         $this->_client     = $client;
         $this->_password   = $password;
