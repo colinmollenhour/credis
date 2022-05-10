@@ -754,14 +754,21 @@ class CredisTest extends CredisTestCommon
 
   public function testTLSConnection()
   {
-    // php/redis both need to be compiled with similar TLS configurations
-    // Modern TLS against newer redis versions only reliably works for php 7.2+ due to TLSv1.2+ support
-    if (version_compare(phpversion(),'7.2.0','<')) {
-      $this->assertTrue(true);
-      return;
-    }
+    /**
+    https://www.php.net/manual/en/context.ssl.php
+    > Oddly, if "tls://" is set below, then TLSv1 is forced, but using "ssl://" allows TLSv1.2
 
-    $this->credis = new Credis_Client('tls://'.$this->redisConfig[8]['host'] . ':' . $this->redisConfig[8]['port']);
+    and
+    >Recommended use "ssl://" transport.
+    > in php 5.5 ~ 7.1
+    > ssl:// transport = ssl_v2|ssl_v3|tls_v1.0|tls_v1.1|tls_v1.2
+    > tls:// transport = tls_v1.0
+    > after 7.2 ssl:// and tls:// transports is same
+    > php 7.2 ~ 7.3 = tls_v1.0|tls_v1.1|tls_v1.2
+    > php 7.4 ~ 8.1 = tls_v1.0|tls_v1.1|tls_v1.2|tls_v1.3
+     */
+
+    $this->credis = new Credis_Client('ssl://'.$this->redisConfig[8]['host'] . ':' . $this->redisConfig[8]['port']);
     $this->credis->setTlsOptions((array)$this->redisConfig[8]['ssl']);
     $this->credis->connect();
     $this->assertTrue(true);
