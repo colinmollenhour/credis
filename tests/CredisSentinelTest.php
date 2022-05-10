@@ -225,9 +225,16 @@ class CredisSentinelTest extends CredisTestCommon
       }
       catch(CredisException $e)
       {
-        if (strpos($e->getMessage(), 'sentinel subcommand') !== false)
+        if (strpos($e->getMessage(), 'bla') !== false)
         {
-          $this->assertStringStartsWith('ERR Unknown sentinel subcommand \'bla\'', $e->getMessage());
+          if (strpos($e->getMessage(), 'unknown subcommand') !== false)
+          {
+            $this->assertStringStartsWith('ERR unknown subcommand \'bla\'', $e->getMessage());
+          }
+          else
+          {
+            $this->assertStringStartsWith('ERR Unknown sentinel subcommand \'bla\'', $e->getMessage());
+          }
         }
         else
         {
