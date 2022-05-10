@@ -732,17 +732,24 @@ class CredisTest extends CredisTestCommon
 
   public function testConnectionStringsTls()
   {
-      $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port']);
-      $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
-      $this->assertEquals($this->credis->getPort(),$this->redisConfig[0]['port']);
-      $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host']);
-      $this->assertEquals($this->credis->getPort(),6379);
-      $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/abc123');
-      $this->assertEquals($this->credis->getPersistence(),'abc123');
-      $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host'],6380);
-      $this->assertEquals($this->credis->getPort(),6380);
-      $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host'],NULL,NULL,"abc123");
-      $this->assertEquals($this->credis->getPersistence(),'abc123');
+      foreach(['ssl','tls','tlsv1.0','tlsv1.1','tlsv1.2'] as $prefix){
+        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port']);
+        $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
+        $this->assertEquals($this->credis->getPort(),$this->redisConfig[0]['port']);
+        $this->assertTrue($this->credis->isTls());
+        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host']);
+        $this->assertEquals($this->credis->getPort(),6379);
+        $this->assertTrue($this->credis->isTls());
+        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/abc123');
+        $this->assertEquals($this->credis->getPersistence(),'abc123');
+        $this->assertTrue($this->credis->isTls());
+        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'],6380);
+        $this->assertEquals($this->credis->getPort(),6380);
+        $this->assertTrue($this->credis->isTls());
+        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'],NULL,NULL,"abc123");
+        $this->assertEquals($this->credis->getPersistence(),'abc123');
+        $this->assertTrue($this->credis->isTls());
+      }
   }
 
   public function testTLSConnection()

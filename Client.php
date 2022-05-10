@@ -409,6 +409,14 @@ class Credis_Client {
     }
 
     /**
+     * @return bool
+     */
+    public function isTls()
+    {
+      return $this->isTls;
+    }
+
+    /**
      * Return the selected database
      * @return int
      */
