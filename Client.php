@@ -20,7 +20,6 @@
  * @package Credis_Client
  */
 
-if( ! defined('CRLF')) define('CRLF', sprintf('%s%s', chr(13), chr(10)));
 
 /**
  * Credis-specific errors, wraps native Redis errors
@@ -1423,7 +1422,7 @@ class Credis_Client {
                 throw new CredisException('Lost connection to Redis server.', CredisException::CODE_DISCONNECTED);
             }
         }
-        $reply = rtrim($reply, CRLF);
+        $reply = rtrim($reply, "\r\n");
         #echo "> $name: $reply\n";
         $replyType = substr($reply, 0, 1);
         switch ($replyType) {
@@ -1498,7 +1497,7 @@ class Credis_Client {
                 $response = count($keys) ? array_combine($keys, $values) : array();
                 break;
             case 'info':
-                $lines = explode(CRLF, trim($response, CRLF));
+                $lines = explode("\r\n", trim($response, "\r\n"));
                 $response = array();
                 foreach ($lines as $line)
                 {
@@ -1587,12 +1586,12 @@ class Credis_Client {
      */
     private static function _prepare_command($args)
     {
-        return sprintf('*%d%s%s%s', count($args), CRLF, implode(CRLF, array_map([static::class, '_map'], $args)), CRLF);
+        return sprintf('*%d%s%s%s', count($args), "\r\n", implode("\r\n", array_map([static::class, '_map'], $args)), "\r\n");
     }
 
     private static function _map($arg)
     {
-        return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
+        return sprintf('$%d%s%s', strlen($arg), "\r\n", $arg);
     }
 
     /**
