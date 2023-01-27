@@ -26,18 +26,16 @@
  */
 class CredisException extends Exception
 {
-
     const CODE_TIMED_OUT = 1;
     const CODE_DISCONNECTED = 2;
 
-    public function __construct($message, $code = 0, $exception = NULL)
+    public function __construct($message, $code = 0, $exception = null)
     {
         if ($exception && get_class($exception) == 'RedisException' && strpos($message, 'read error on connection') === 0) {
             $code = CredisException::CODE_DISCONNECTED;
         }
         parent::__construct($message, $code, $exception);
     }
-
 }
 
 /**
@@ -168,17 +166,12 @@ class CredisException extends Exception
  */
 class Credis_Client
 {
-
-    const VERSION = '1.11.4';
-
     const TYPE_STRING = 'string';
     const TYPE_LIST = 'list';
     const TYPE_SET = 'set';
     const TYPE_ZSET = 'zset';
     const TYPE_HASH = 'hash';
     const TYPE_NONE = 'none';
-
-    const FREAD_BLOCK_SIZE = 8192;
 
     /**
      * Socket connection to the Redis server or Redis library instance
@@ -232,12 +225,12 @@ class Credis_Client
     /**
      * @var bool
      */
-    protected $closeOnDestruct = TRUE;
+    protected $closeOnDestruct = true;
 
     /**
      * @var bool
      */
-    protected $connected = FALSE;
+    protected $connected = false;
 
     /**
      * @var bool
@@ -257,7 +250,7 @@ class Credis_Client
     /**
      * @var bool
      */
-    protected $usePipeline = FALSE;
+    protected $usePipeline = false;
 
     /**
      * @var array
@@ -272,12 +265,12 @@ class Credis_Client
     /**
      * @var bool
      */
-    protected $isMulti = FALSE;
+    protected $isMulti = false;
 
     /**
      * @var bool
      */
-    protected $isWatching = FALSE;
+    protected $isWatching = false;
 
     /**
      * @var string|null
@@ -370,10 +363,10 @@ class Credis_Client
         // PHP Redis extension support TLS/ACL AUTH since 5.3.0
         $this->oldPhpRedis = (bool)version_compare(phpversion('redis'), '5.3.0', '<');
         if ((
-                $this->isTls
-                || $this->authUsername !== null
-            )
-            && !$this->standalone && $this->oldPhpRedis) {
+            $this->isTls
+            || $this->authUsername !== null
+        )
+        && !$this->standalone && $this->oldPhpRedis) {
             $this->standalone = true;
         }
     }
@@ -448,7 +441,7 @@ class Credis_Client
         if ($this->connected) {
             throw new CredisException('Cannot force Credis_Client to use standalone PHP driver after a connection has already been established.');
         }
-        $this->standalone = TRUE;
+        $this->standalone = true;
         return $this;
     }
 
@@ -494,15 +487,15 @@ class Credis_Client
                 $this->persistent = isset($matches[5]) ? $matches[5] : $this->persistent;
             } else {
                 $this->host = $matches[2];
-                $this->port = NULL;
+                $this->port = null;
                 $this->scheme = 'unix';
                 if (substr($this->host, 0, 1) != '/') {
                     throw new CredisException('Invalid unix socket format; expected unix:///path/to/redis.sock');
                 }
             }
         }
-        if ($this->port !== NULL && substr($this->host, 0, 1) == '/') {
-            $this->port = NULL;
+        if ($this->port !== null && substr($this->host, 0, 1) == '/') {
+            $this->port = null;
             $this->scheme = 'unix';
         }
         if (!$this->scheme) {
@@ -523,10 +516,10 @@ class Credis_Client
         $tlsOptions = $this->isTls ? $this->tlsOptions : [];
         if ($this->standalone) {
             $flags = STREAM_CLIENT_CONNECT;
-            $remote_socket = $this->port === NULL
+            $remote_socket = $this->port === null
                 ? $this->scheme . '://' . $this->host
                 : $this->scheme . '://' . $this->host . ':' . $this->port;
-            if ($this->persistent && $this->port !== NULL) {
+            if ($this->persistent && $this->port !== null) {
                 // Persistent connections to UNIX sockets are not supported
                 $remote_socket .= '/' . $this->persistent;
                 $flags = $flags | STREAM_CLIENT_PERSISTENT;
@@ -549,7 +542,7 @@ class Credis_Client
             }
         } else {
             if (!$this->redis) {
-                $this->redis = new Redis;
+                $this->redis = new Redis();
             }
             $socketTimeout = $this->timeout ?: 0.0;
             try {
@@ -585,7 +578,8 @@ class Credis_Client
             }
             $failures = $this->connectFailures;
             $this->connectFailures = 0;
-            throw new CredisException(sprintf("Connection to Redis%s %s://%s failed after %s failures.%s",
+            throw new CredisException(sprintf(
+                "Connection to Redis%s %s://%s failed after %s failures.%s",
                 $this->standalone ? ' standalone' : '',
                 $this->scheme,
                 $this->host . ($this->port ? ':' . $this->port : ''),
@@ -595,7 +589,7 @@ class Credis_Client
         }
 
         $this->connectFailures = 0;
-        $this->connected = TRUE;
+        $this->connected = true;
 
         // Set read timeout
         if ($this->readTimeout) {
@@ -635,9 +629,9 @@ class Credis_Client
         if ($this->isConnected()) {
             if ($this->standalone) {
                 $timeout = $timeout <= 0 ? 315360000 : $timeout; // Ten-year timeout
-                stream_set_blocking($this->redis, TRUE);
+                stream_set_blocking($this->redis, true);
                 stream_set_timeout($this->redis, (int)floor($timeout), ($timeout - floor($timeout)) * 1000000);
-            } else if (defined('Redis::OPT_READ_TIMEOUT')) {
+            } elseif (defined('Redis::OPT_READ_TIMEOUT')) {
                 // supported in phpredis 2.2.3
                 // a timeout value of -1 means reads will not timeout
                 $timeout = $timeout == 0 ? -1 : $timeout;
@@ -650,9 +644,9 @@ class Credis_Client
     /**
      * @return bool
      */
-    public function close($force = FALSE)
+    public function close($force = false)
     {
-        $result = TRUE;
+        $result = true;
         if ($this->redis && ($force || $this->connected && !$this->persistent)) {
             try {
                 if (is_callable(array($this->redis, 'close'))) {
@@ -664,7 +658,7 @@ class Credis_Client
             } catch (Exception $e) {
                 ; // Ignore exceptions on close
             }
-            $this->connected = $this->usePipeline = $this->isMulti = $this->isWatching = FALSE;
+            $this->connected = $this->usePipeline = $this->isMulti = $this->isWatching = false;
         }
         return $result;
     }
@@ -681,12 +675,12 @@ class Credis_Client
      * @param string|null $alias
      * @return $this
      */
-    public function renameCommand($command, $alias = NULL)
+    public function renameCommand($command, $alias = null)
     {
         if (!$this->standalone) {
             $this->forceStandalone();
         }
-        if ($alias === NULL) {
+        if ($alias === null) {
             $this->renamedCommands = $command;
         } else {
             if (!$this->renamedCommands) {
@@ -706,12 +700,12 @@ class Credis_Client
         static $map;
 
         // Command renaming not enabled
-        if ($this->renamedCommands === NULL) {
+        if ($this->renamedCommands === null) {
             return $command;
         }
 
         // Initialize command map
-        if ($map === NULL) {
+        if ($map === null) {
             if (is_array($this->renamedCommands)) {
                 $map = $this->renamedCommands;
             } else {
@@ -725,10 +719,10 @@ class Credis_Client
             if (is_string($this->renamedCommands)) {
                 $map[$command] = md5($this->renamedCommands . $command);
             } // Would already be set in $map if it was intended to be renamed
-            else if (is_array($this->renamedCommands)) {
+            elseif (is_array($this->renamedCommands)) {
                 return $command;
             } // User-supplied function
-            else if (is_callable($this->renamedCommands)) {
+            elseif (is_callable($this->renamedCommands)) {
                 $map[$command] = call_user_func($this->renamedCommands, $command);
             }
         }
@@ -1063,7 +1057,7 @@ class Credis_Client
             if ($this->usePipeline) {
                 if ($name === 'pipeline') {
                     throw new CredisException('A pipeline is already in use and only one pipeline is supported.');
-                } else if ($name === 'exec') {
+                } elseif ($name === 'exec') {
                     if ($this->isMulti) {
                         $this->commandNames[] = array($name, $trackedArgs);
                         $this->commands .= self::_prepare_command(array($this->getRenamedCommand($name)));
@@ -1073,7 +1067,7 @@ class Credis_Client
                     if ($this->commands) {
                         $this->write_command($this->commands);
                     }
-                    $this->commands = NULL;
+                    $this->commands = null;
 
                     // Read response
                     $queuedResponses = array();
@@ -1097,16 +1091,16 @@ class Credis_Client
                         }
                     }
 
-                    $this->commandNames = NULL;
-                    $this->usePipeline = $this->isMulti = FALSE;
+                    $this->commandNames = null;
+                    $this->usePipeline = $this->isMulti = false;
                     return $response;
-                } else if ($name === 'discard') {
-                    $this->commands = NULL;
-                    $this->commandNames = NULL;
-                    $this->usePipeline = $this->isMulti = FALSE;
+                } elseif ($name === 'discard') {
+                    $this->commands = null;
+                    $this->commandNames = null;
+                    $this->usePipeline = $this->isMulti = false;
                 } else {
                     if ($name === 'multi') {
-                        $this->isMulti = TRUE;
+                        $this->isMulti = true;
                     }
                     array_unshift($args, $this->getRenamedCommand($name));
                     $this->commandNames[] = array($name, $trackedArgs);
@@ -1117,7 +1111,7 @@ class Credis_Client
 
             // Start pipeline mode
             if ($name === 'pipeline') {
-                $this->usePipeline = TRUE;
+                $this->usePipeline = true;
                 $this->commandNames = array();
                 $this->commands = '';
                 return $this;
@@ -1125,7 +1119,7 @@ class Credis_Client
 
             // If unwatching, allow reconnect with no error thrown
             if ($name === 'unwatch') {
-                $this->isWatching = FALSE;
+                $this->isWatching = false;
             }
 
             // Non-pipeline mode
@@ -1137,13 +1131,13 @@ class Credis_Client
 
             // Watch mode disables reconnect so error is thrown
             if ($name == 'watch') {
-                $this->isWatching = TRUE;
+                $this->isWatching = true;
             } // Transaction mode
-            else if ($this->isMulti && ($name == 'exec' || $name == 'discard')) {
-                $this->isMulti = FALSE;
+            elseif ($this->isMulti && ($name == 'exec' || $name == 'discard')) {
+                $this->isMulti = false;
             } // Started transaction
-            else if ($this->isMulti || $name == 'multi') {
-                $this->isMulti = TRUE;
+            elseif ($this->isMulti || $name == 'multi') {
+                $this->isMulti = true;
                 $response = $this;
             }
         } // Send request via phpredis client
@@ -1237,14 +1231,14 @@ class Credis_Client
                     if ($this->isMulti) {
                         return $this;
                     } else {
-                        $this->isMulti = TRUE;
+                        $this->isMulti = true;
                         $this->redisMulti = call_user_func_array(array($this->redis, $name), $args);
                         return $this;
                     }
-                } else if ($name == 'exec' || $name == 'discard') {
-                    $this->isMulti = FALSE;
+                } elseif ($name == 'exec' || $name == 'discard') {
+                    $this->isMulti = false;
                     $response = $this->redisMulti->$name();
-                    $this->redisMulti = NULL;
+                    $this->redisMulti = null;
                     #echo "> $name : ".substr(print_r($response, TRUE),0,100)."\n";
                     return $response;
                 }
@@ -1300,15 +1294,15 @@ class Credis_Client
                     $response = $typeMap[$response];
                     break;
 
-                // Handle scripting errors
+                    // Handle scripting errors
                 case 'eval':
                 case 'evalsha':
                 case 'script':
                     $error = $this->redis->getLastError();
                     $this->redis->clearLastError();
                     if ($error && substr($error, 0, 8) == 'NOSCRIPT') {
-                        $response = NULL;
-                    } else if ($error) {
+                        $response = null;
+                    } elseif ($error) {
                         throw new CredisException($error);
                     }
                     break;
@@ -1320,7 +1314,7 @@ class Credis_Client
                     if ($response) {
                         if ($response === true) {
                             $response = isset($args[0]) ? $args[0] : "PONG";
-                        } else if ($response[0] === '+') {
+                        } elseif ($response[0] === '+') {
                             $response = substr($response, 1);
                         }
                     }
@@ -1329,6 +1323,7 @@ class Credis_Client
                     if (is_bool($response) && $response === true) {
                         $this->redis->clearLastError();
                     }
+                    // no break
                 default:
                     $error = $this->redis->getLastError();
                     $this->redis->clearLastError();
@@ -1363,10 +1358,10 @@ class Credis_Client
         }
 
         $commandLen = strlen($command);
-        $lastFailed = FALSE;
+        $lastFailed = false;
         for ($written = 0; $written < $commandLen; $written += $fwrite) {
             $fwrite = fwrite($this->redis, substr($command, $written));
-            if ($fwrite === FALSE || ($fwrite == 0 && $lastFailed)) {
+            if ($fwrite === false || ($fwrite == 0 && $lastFailed)) {
                 $this->close(true);
                 throw new CredisException('Failed to write entire command to stream');
             }
@@ -1377,7 +1372,7 @@ class Credis_Client
     protected function read_reply($name = '', $returnQueued = false)
     {
         $reply = fgets($this->redis);
-        if ($reply === FALSE) {
+        if ($reply === false) {
             $info = stream_get_meta_data($this->redis);
             $this->close(true);
             if ($info['timed_out']) {
@@ -1393,26 +1388,28 @@ class Credis_Client
             /* Error reply */
             case '-':
                 if ($this->isMulti || $this->usePipeline) {
-                    $response = FALSE;
-                } else if ($name == 'evalsha' && substr($reply, 0, 9) == '-NOSCRIPT') {
-                    $response = NULL;
+                    $response = false;
+                } elseif ($name == 'evalsha' && substr($reply, 0, 9) == '-NOSCRIPT') {
+                    $response = null;
                 } else {
                     throw new CredisException(substr($reply, 0, 4) == '-ERR' ? 'ERR ' . substr($reply, 5) : substr($reply, 1));
                 }
                 break;
-            /* Inline reply */
+                /* Inline reply */
             case '+':
                 $response = substr($reply, 1);
                 if ($response == 'OK') {
-                    return TRUE;
+                    return true;
                 }
                 if ($response == 'QUEUED') {
                     return $returnQueued ? null : true;
                 }
                 break;
-            /* Bulk reply */
+                /* Bulk reply */
             case '$':
-                if ($reply == '$-1') return FALSE;
+                if ($reply == '$-1') {
+                    return false;
+                }
                 $size = (int)substr($reply, 1);
                 $response = stream_get_contents($this->redis, $size + 2);
                 if (!$response) {
@@ -1421,22 +1418,24 @@ class Credis_Client
                 }
                 $response = substr($response, 0, $size);
                 break;
-            /* Multi-bulk reply */
+                /* Multi-bulk reply */
             case '*':
                 $count = substr($reply, 1);
-                if ($count == '-1') return FALSE;
+                if ($count == '-1') {
+                    return false;
+                }
 
                 $response = array();
                 for ($i = 0; $i < $count; $i++) {
                     $response[] = $this->read_reply();
                 }
                 break;
-            /* Integer reply */
+                /* Integer reply */
             case ':':
                 $response = intval(substr($reply, 1));
                 break;
             default:
-                throw new CredisException('Invalid response: ' . print_r($reply, TRUE));
+                throw new CredisException('Invalid response: ' . print_r($reply, true));
                 break;
         }
 
@@ -1478,7 +1477,8 @@ class Credis_Client
                 if (count($arguments) != count($response)) {
                     throw new CredisException(
                         'hmget arguments and response do not match: ' . print_r($arguments, true) . ' ' . print_r(
-                            $response, true
+                            $response,
+                            true
                         )
                     );
                 }

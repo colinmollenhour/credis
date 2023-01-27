@@ -172,7 +172,7 @@ class Credis_Cluster
     {
         if (is_int($alias) && isset($this->clients[$alias])) {
             return $this->clients[$alias];
-        } else if (isset($this->aliases[$alias])) {
+        } elseif (isset($this->aliases[$alias])) {
             return $this->aliases[$alias];
         }
         throw new CredisException("Client $alias does not exist.");
@@ -267,7 +267,7 @@ class Credis_Cluster
             $server = $this->nodes[$position];
             if ($needle < $server) {
                 $max = $position - 1;
-            } else if ($needle > $server) {
+            } elseif ($needle > $server) {
                 $min = $position + 1;
             } else {
                 break;

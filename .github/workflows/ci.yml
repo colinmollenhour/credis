@@ -37,13 +37,26 @@ jobs:
     - name: Setup Redis
       run: sudo add-apt-repository ppa:redislabs/redis -y -u ; sudo apt install redis -y ; sudo systemctl stop redis\* ; redis-cli --version
 
-    - name: Install phpunit
+    - name: Install dependencies
       env:
         PHPUNIT_VERSION: ${{ matrix.phpunit }}
       run: |
         if [ ! -z "$PHPUNIT_VERSION" ]; then
           composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
+          need_install_dev=1
+        fi
+        if php -r 'exit(version_compare(PHP_VERSION, "8.0") >= 0 ? 0 : 1);'; then
+          composer require "friendsofphp/php-cs-fixer:^3.13" --dev --no-update -n
+          need_install_dev=1
+        fi
+        if [ ! -z "$need_install_dev" ]; then
           composer install --dev -n
+        fi
+
+    - name: Run PHP CS Fixer
+      run: |
+        if [ -f ./vendor/bin/php-cs-fixer ]; then
+          ./vendor/bin/php-cs-fixer fix --diff --dry-run
         fi
 
     - name: Report phpredis version

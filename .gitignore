@@ -1,5 +1,7 @@
 .idea
+composer.lock
 vendor
 phpunit.phar
 phpunit_*.log
 /.phpunit.result.cache
+/.php-cs-fixer.cache

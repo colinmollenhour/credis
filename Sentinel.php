@@ -85,13 +85,13 @@ class Credis_Sentinel
      * @param string $password (deprecated - use setClientPassword)
      * @throws CredisException
      */
-    public function __construct(Credis_Client $client, $password = NULL, $username = NULL)
+    public function __construct(Credis_Client $client, $password = null, $username = null)
     {
         $client->forceStandalone(); // SENTINEL command not currently supported by phpredis
         $this->_client = $client;
         $this->_password = $password;
         $this->_username = $username;
-        $this->_timeout = NULL;
+        $this->_timeout = null;
         $this->_persistent = '';
         $this->_db = 0;
     }

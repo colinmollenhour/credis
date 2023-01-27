@@ -12,21 +12,21 @@ class CredisTest extends CredisTestCommon
     {
         parent::setUpInternal();
         $this->credis = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port'], $this->redisConfig[0]['timeout']);
-        if($this->useStandalone) {
+        if ($this->useStandalone) {
             $this->credis->forceStandalone();
         }
         $this->credis->flushDb();
     }
     protected function tearDownInternal()
     {
-        if($this->credis) {
+        if ($this->credis) {
             $this->credis->close();
-            $this->credis = NULL;
+            $this->credis = null;
         }
     }
     public function testFlush()
     {
-        $this->credis->set('foo','FOO');
+        $this->credis->set('foo', 'FOO');
         $this->assertTrue($this->credis->flushDb());
         $this->assertFalse($this->credis->get('foo'));
     }
@@ -61,7 +61,7 @@ class CredisTest extends CredisTestCommon
     public function testScalars()
     {
         // Basic get/set
-        $this->credis->set('foo','FOO');
+        $this->credis->set('foo', 'FOO');
         $this->assertEquals('FOO', $this->credis->get('foo'));
         $this->assertFalse($this->credis->get('nil'));
 
@@ -70,12 +70,12 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals($this->credis->exists('nil'), 0);
 
         // Empty string
-        $this->credis->set('empty','');
+        $this->credis->set('empty', '');
         $this->assertEquals('', $this->credis->get('empty'));
 
         // UTF-8 characters
         $utf8str = str_repeat("quarter: ¼, micro: µ, thorn: Þ, ", 500);
-        $this->credis->set('utf8',$utf8str);
+        $this->credis->set('utf8', $utf8str);
         $this->assertEquals($utf8str, $this->credis->get('utf8'));
 
         // Array
@@ -86,12 +86,12 @@ class CredisTest extends CredisTestCommon
         $this->assertTrue(in_array('', $mGet));
 
         // Non-array
-        $mGet = $this->credis->mGet('foo','bar');
+        $mGet = $this->credis->mGet('foo', 'bar');
         $this->assertTrue(in_array('FOO', $mGet));
         $this->assertTrue(in_array('BAR', $mGet));
 
         // Delete strings, null response
-        $this->assertEquals(2, $this->credis->del('foo','bar'));
+        $this->assertEquals(2, $this->credis->del('foo', 'bar'));
         $this->assertFalse($this->credis->get('foo'));
         $this->assertFalse($this->credis->get('bar'));
 
@@ -214,7 +214,7 @@ class CredisTest extends CredisTestCommon
         $this->assertTrue(array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
 
-        $range = $this->credis->zRevRangeByScore('myset', '+inf',10, array('withscores' => true));
+        $range = $this->credis->zRevRangeByScore('myset', '+inf', 10, array('withscores' => true));
         $this->assertEquals(2, count($range));
         $this->assertTrue(array_key_exists('And', $range));
         $this->assertEquals(10, $range['And']);
@@ -267,12 +267,12 @@ class CredisTest extends CredisTestCommon
 
     public function testHashes()
     {
-        $this->assertEquals(1, $this->credis->hSet('hash','field1','foo'));
-        $this->assertEquals(0, $this->credis->hSet('hash','field1','foo'));
-        $this->assertEquals('foo', $this->credis->hGet('hash','field1'));
-        $this->assertEquals(NULL, $this->credis->hGet('hash','x'));
+        $this->assertEquals(1, $this->credis->hSet('hash', 'field1', 'foo'));
+        $this->assertEquals(0, $this->credis->hSet('hash', 'field1', 'foo'));
+        $this->assertEquals('foo', $this->credis->hGet('hash', 'field1'));
+        $this->assertEquals(null, $this->credis->hGet('hash', 'x'));
         $this->assertTrue($this->credis->hMSet('hash', array('field2' => 'Hello', 'field3' => 'World')));
-        $this->assertEquals(array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => FALSE), $this->credis->hMGet('hash', array('field1','field2','nilfield')));
+        $this->assertEquals(array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => false), $this->credis->hMGet('hash', array('field1','field2','nilfield')));
         $this->assertEquals(array(), $this->credis->hGetAll('nohash'));
         $this->assertEquals(array('field1' => 'foo', 'field2' => 'Hello', 'field3' => 'World'), $this->credis->hGetAll('hash'));
 
@@ -290,11 +290,11 @@ class CredisTest extends CredisTestCommon
 
         $this->credis->pipeline();
         $this->assertTrue($this->credis === $this->credis->hMGet('hash', array('field1','field2','nilfield')));
-        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => FALSE)), $this->credis->exec());
+        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => false)), $this->credis->exec());
 
         $this->credis->pipeline()->multi();
         $this->assertTrue($this->credis === $this->credis->hMGet('hash', array('field1','field2','nilfield')));
-        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => FALSE)), $this->credis->exec());
+        $this->assertEquals(array(0 => array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => false)), $this->credis->exec());
     }
 
     public function testFalsey()
@@ -335,7 +335,8 @@ class CredisTest extends CredisTestCommon
             array(
                 true,
                 true,
-            ), $reply
+            ),
+            $reply
         );
         $this->assertTrue($this->credis->unwatch());
     }
@@ -425,7 +426,8 @@ class CredisTest extends CredisTestCommon
                     'member3' => 3.0,
                     'member2' => 2.0,
                 ),
-            ), $reply
+            ),
+            $reply
         );
     }
 
@@ -454,7 +456,7 @@ class CredisTest extends CredisTestCommon
                 ->lpop('a')
                 ->exec();
         $this->assertEquals(2, count($reply));
-        $this->assertEquals(TRUE, $reply[0]);
+        $this->assertEquals(true, $reply[0]);
         $this->assertFalse($reply[1]);
     }
 
@@ -471,7 +473,7 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals('09d3822de862f46d784e6a36848b4f0736dda47a', $this->credis->script('load', 'return 3'));
         $this->assertEquals(3, $this->credis->evalSha('09d3822de862f46d784e6a36848b4f0736dda47a'));
 
-        $this->credis->set('foo','FOO');
+        $this->credis->set('foo', 'FOO');
         $this->assertEquals('FOOBAR', $this->credis->eval("return redis.call('get', KEYS[1])..ARGV[1]", 'foo', 'BAR'));
 
         $this->assertEquals(array(1,2,'three'), $this->credis->eval("return {1,2,'three'}"));
@@ -539,7 +541,7 @@ class CredisTest extends CredisTestCommon
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      $this->assertTrue($this->credis->set('database',1));
+      $this->assertTrue($this->credis->set('database', 1));
       $this->credis->close();
       $this->credis = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port'], $this->redisConfig[0]['timeout'], false, 0);
       if ($this->useStandalone) {
@@ -550,7 +552,7 @@ class CredisTest extends CredisTestCommon
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      $this->assertEquals(1,$this->credis->get('database'));
+      $this->assertEquals(1, $this->credis->get('database'));
   }
 
   /**
@@ -559,32 +561,26 @@ class CredisTest extends CredisTestCommon
   public function testPassword()
   {
       $this->tearDown();
-      $this->assertArrayHasKey('password',$this->redisConfig[4]);
+      $this->assertArrayHasKey('password', $this->redisConfig[4]);
       $this->credis = new Credis_Client($this->redisConfig[4]['host'], $this->redisConfig[4]['port'], $this->redisConfig[4]['timeout'], false, 0, $this->redisConfig[4]['password']);
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      $this->assertInstanceOf('Credis_Client',$this->credis->connect());
-      $this->assertTrue($this->credis->set('key','value'));
+      $this->assertInstanceOf('Credis_Client', $this->credis->connect());
+      $this->assertTrue($this->credis->set('key', 'value'));
       $this->credis->close();
       $this->credis = new Credis_Client($this->redisConfig[4]['host'], $this->redisConfig[4]['port'], $this->redisConfig[4]['timeout'], false, 0, 'wrongpassword');
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      try
-      {
+      try {
           $this->credis->connect();
           $this->fail('connect should fail with wrong password');
-      }
-      catch(CredisException $e)
-      {
-          if (strpos($e->getMessage(), 'username') !== false)
-          {
-            $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
-          }
-          else
-          {
-            $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+      } catch(CredisException $e) {
+          if (strpos($e->getMessage(), 'username') !== false) {
+              $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+          } else {
+              $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
           }
 
           $this->credis->close();
@@ -593,31 +589,22 @@ class CredisTest extends CredisTestCommon
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      try
-      {
+      try {
           $this->credis->set('key', 'value');
-      }
-      catch(CredisException $e)
-      {
+      } catch(CredisException $e) {
           $this->assertStringStartsWith('NOAUTH Authentication required', $e->getMessage());
       }
-      try
-      {
+      try {
           $this->credis->auth('anotherwrongpassword');
-      }
-      catch(CredisException $e)
-      {
-        if (strpos($e->getMessage(), 'username') !== false)
-        {
-          $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
-        }
-        else
-        {
-          $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
-        }
+      } catch(CredisException $e) {
+          if (strpos($e->getMessage(), 'username') !== false) {
+              $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+          } else {
+              $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+          }
       }
       $this->assertTrue($this->credis->auth('thepassword'));
-      $this->assertTrue($this->credis->set('key','value'));
+      $this->assertTrue($this->credis->set('key', 'value'));
   }
 
   /**
@@ -626,32 +613,26 @@ class CredisTest extends CredisTestCommon
   public function testUsernameAndPassword()
   {
       $this->tearDown();
-      $this->assertArrayHasKey('password',$this->redisConfig[7]);
+      $this->assertArrayHasKey('password', $this->redisConfig[7]);
       $this->credis = new Credis_Client($this->redisConfig[7]['host'], $this->redisConfig[7]['port'], $this->redisConfig[7]['timeout'], false, 0, $this->redisConfig[7]['password'], $this->redisConfig[7]['username']);
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      $this->assertInstanceOf('Credis_Client',$this->credis->connect());
-      $this->assertTrue($this->credis->set('key','value'));
+      $this->assertInstanceOf('Credis_Client', $this->credis->connect());
+      $this->assertTrue($this->credis->set('key', 'value'));
       $this->credis->close();
       $this->credis = new Credis_Client($this->redisConfig[7]['host'], $this->redisConfig[7]['port'], $this->redisConfig[7]['timeout'], false, 0, 'wrongpassword', $this->redisConfig[7]['username']);
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      try
-      {
+      try {
           $this->credis->connect();
           $this->fail('connect should fail with wrong password');
-      }
-      catch(CredisException $e)
-      {
-          if (strpos($e->getMessage(), 'username') !== false)
-          {
-            $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
-          }
-          else
-          {
-            $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+      } catch(CredisException $e) {
+          if (strpos($e->getMessage(), 'username') !== false) {
+              $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+          } else {
+              $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
           }
 
           $this->credis->close();
@@ -660,40 +641,31 @@ class CredisTest extends CredisTestCommon
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      try
-      {
+      try {
           $this->credis->set('key', 'value');
-      }
-      catch(CredisException $e)
-      {
+      } catch(CredisException $e) {
           $this->assertStringStartsWith('NOAUTH Authentication required', $e->getMessage());
       }
-      try
-      {
+      try {
           $this->credis->auth('anotherwrongpassword');
-      }
-      catch(CredisException $e)
-      {
-        if (strpos($e->getMessage(), 'username') !== false)
-        {
-          $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
-        }
-        else
-        {
-          $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
-        }
+      } catch(CredisException $e) {
+          if (strpos($e->getMessage(), 'username') !== false) {
+              $this->assertStringStartsWith('WRONGPASS invalid username-password pair', $e->getMessage());
+          } else {
+              $this->assertStringStartsWith('ERR invalid password', $e->getMessage());
+          }
       }
       $this->assertTrue($this->credis->auth('thepassword'));
-      $this->assertTrue($this->credis->set('key','value'));
+      $this->assertTrue($this->credis->set('key', 'value'));
   }
 
   public function testGettersAndSetters()
   {
-      $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
-      $this->assertEquals($this->credis->getPort(),$this->redisConfig[0]['port']);
-      $this->assertEquals($this->credis->getSelectedDb(),0);
+      $this->assertEquals($this->credis->getHost(), $this->redisConfig[0]['host']);
+      $this->assertEquals($this->credis->getPort(), $this->redisConfig[0]['port']);
+      $this->assertEquals($this->credis->getSelectedDb(), 0);
       $this->assertTrue($this->credis->select(2));
-      $this->assertEquals($this->credis->getSelectedDb(),2);
+      $this->assertEquals($this->credis->getSelectedDb(), 2);
       $this->assertTrue($this->credis->isConnected());
       $this->credis->close();
       $this->assertFalse($this->credis->isConnected());
@@ -701,16 +673,16 @@ class CredisTest extends CredisTestCommon
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
-      $this->assertEquals('persistenceId',$this->credis->getPersistence());
+      $this->assertEquals('persistenceId', $this->credis->getPersistence());
       $this->credis = new Credis_Client('localhost', 12345);
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
       }
       $this->credis->setMaxConnectRetries(1);
       if ($this->useStandalone) {
-        $this->setExpectedExceptionShim('CredisException','Connection to Redis standalone tcp://localhost:12345 failed after 2 failures.');
+          $this->setExpectedExceptionShim('CredisException', 'Connection to Redis standalone tcp://localhost:12345 failed after 2 failures.');
       } else {
-        $this->setExpectedExceptionShim('CredisException','Connection to Redis tcp://localhost:12345 failed after 2 failures.');
+          $this->setExpectedExceptionShim('CredisException', 'Connection to Redis tcp://localhost:12345 failed after 2 failures.');
       }
       $this->credis->connect();
   }
@@ -718,60 +690,60 @@ class CredisTest extends CredisTestCommon
   public function testConnectionStrings()
   {
       $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port']);
-      $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
-      $this->assertEquals($this->credis->getPort(),$this->redisConfig[0]['port']);
+      $this->assertEquals($this->credis->getHost(), $this->redisConfig[0]['host']);
+      $this->assertEquals($this->credis->getPort(), $this->redisConfig[0]['port']);
       $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host']);
-      $this->assertEquals($this->credis->getPort(),6379);
+      $this->assertEquals($this->credis->getPort(), 6379);
       $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/abc123');
-      $this->assertEquals($this->credis->getPersistence(),'abc123');
-      $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'],6380);
-      $this->assertEquals($this->credis->getPort(),6380);
-      $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'],NULL,NULL,"abc123");
-      $this->assertEquals($this->credis->getPersistence(),'abc123');
+      $this->assertEquals($this->credis->getPersistence(), 'abc123');
+      $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'], 6380);
+      $this->assertEquals($this->credis->getPort(), 6380);
+      $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'], null, null, "abc123");
+      $this->assertEquals($this->credis->getPersistence(), 'abc123');
   }
 
   public function testConnectionStringsTls()
   {
-      foreach(['ssl','tls','tlsv1.0','tlsv1.1','tlsv1.2'] as $prefix){
-        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port']);
-        $this->assertEquals($this->credis->getHost(),$this->redisConfig[0]['host']);
-        $this->assertEquals($this->credis->getPort(),$this->redisConfig[0]['port']);
-        $this->assertTrue($this->credis->isTls());
-        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host']);
-        $this->assertEquals($this->credis->getPort(),6379);
-        $this->assertTrue($this->credis->isTls());
-        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/abc123');
-        $this->assertEquals($this->credis->getPersistence(),'abc123');
-        $this->assertTrue($this->credis->isTls());
-        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'],6380);
-        $this->assertEquals($this->credis->getPort(),6380);
-        $this->assertTrue($this->credis->isTls());
-        $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'],NULL,NULL,"abc123");
-        $this->assertEquals($this->credis->getPersistence(),'abc123');
-        $this->assertTrue($this->credis->isTls());
+      foreach (['ssl','tls','tlsv1.0','tlsv1.1','tlsv1.2'] as $prefix) {
+          $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port']);
+          $this->assertEquals($this->credis->getHost(), $this->redisConfig[0]['host']);
+          $this->assertEquals($this->credis->getPort(), $this->redisConfig[0]['port']);
+          $this->assertTrue($this->credis->isTls());
+          $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host']);
+          $this->assertEquals($this->credis->getPort(), 6379);
+          $this->assertTrue($this->credis->isTls());
+          $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'] . ':' . $this->redisConfig[0]['port'] . '/abc123');
+          $this->assertEquals($this->credis->getPersistence(), 'abc123');
+          $this->assertTrue($this->credis->isTls());
+          $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'], 6380);
+          $this->assertEquals($this->credis->getPort(), 6380);
+          $this->assertTrue($this->credis->isTls());
+          $this->credis = new Credis_Client($prefix.'://'.$this->redisConfig[0]['host'], null, null, "abc123");
+          $this->assertEquals($this->credis->getPersistence(), 'abc123');
+          $this->assertTrue($this->credis->isTls());
       }
   }
 
   public function testTLSConnection()
   {
-    /**
-    https://www.php.net/manual/en/context.ssl.php
-    > Oddly, if "tls://" is set below, then TLSv1 is forced, but using "ssl://" allows TLSv1.2
+      /**
+      https://www.php.net/manual/en/context.ssl.php
+      > Oddly, if "tls://" is set below, then TLSv1 is forced, but using "ssl://" allows TLSv1.2
 
-    and
-    >Recommended use "ssl://" transport.
-    > in php 5.5 ~ 7.1
-    > ssl:// transport = ssl_v2|ssl_v3|tls_v1.0|tls_v1.1|tls_v1.2
-    > tls:// transport = tls_v1.0
-    > after 7.2 ssl:// and tls:// transports is same
-    > php 7.2 ~ 7.3 = tls_v1.0|tls_v1.1|tls_v1.2
-    > php 7.4 ~ 8.1 = tls_v1.0|tls_v1.1|tls_v1.2|tls_v1.3
-     */
+      and
+      >Recommended use "ssl://" transport.
+      > in php 5.5 ~ 7.1
+      > ssl:// transport = ssl_v2|ssl_v3|tls_v1.0|tls_v1.1|tls_v1.2
+      > tls:// transport = tls_v1.0
+      > after 7.2 ssl:// and tls:// transports is same
+      > php 7.2 ~ 7.3 = tls_v1.0|tls_v1.1|tls_v1.2
+      > php 7.4 ~ 8.1 = tls_v1.0|tls_v1.1|tls_v1.2|tls_v1.3
+       */
 
-    $this->credis = new Credis_Client('ssl://'.$this->redisConfig[8]['host'] . ':' . $this->redisConfig[8]['port']);
-    $this->credis->setTlsOptions((array)$this->redisConfig[8]['ssl']);
-    $this->credis->connect();
-    $this->assertTrue(true);
+      $this->credis = new Credis_Client('ssl://'.$this->redisConfig[8]['host'] . ':' . $this->redisConfig[8]['port']);
+      $this->credis->setTlsOptions((array)$this->redisConfig[8]['ssl']);
+      $this->credis->connect();
+      $this->assertTrue(true);
   }
 
   /**
@@ -785,14 +757,14 @@ class CredisTest extends CredisTestCommon
       }
       $this->credis->connect();
       $this->assertTrue($this->credis->isConnected());
-      $this->credis->set('key','value');
-      $this->assertEquals('value',$this->credis->get('key'));
+      $this->credis->set('key', 'value');
+      $this->assertEquals('value', $this->credis->get('key'));
   }
 
   public function testInvalidTcpConnectionString()
   {
       $this->credis->close();
-      $this->setExpectedExceptionShim('CredisException','Invalid host format; expected tcp://host[:port][/persistence_identifier]');
+      $this->setExpectedExceptionShim('CredisException', 'Invalid host format; expected tcp://host[:port][/persistence_identifier]');
       $this->credis = new Credis_Client('tcp://'.$this->redisConfig[0]['host'] . ':abc');
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
@@ -802,7 +774,7 @@ class CredisTest extends CredisTestCommon
   public function testInvalidTlsConnectionString()
   {
       $this->credis->close();
-      $this->setExpectedExceptionShim('CredisException','Invalid host format; expected tls://host[:port][/persistence_identifier]');
+      $this->setExpectedExceptionShim('CredisException', 'Invalid host format; expected tls://host[:port][/persistence_identifier]');
       $this->credis = new Credis_Client('tls://'.$this->redisConfig[0]['host'] . ':abc');
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
@@ -815,7 +787,7 @@ class CredisTest extends CredisTestCommon
   public function testInvalidUnixSocketConnectionString()
   {
       $this->credis->close();
-      $this->setExpectedExceptionShim('CredisException','Invalid unix socket format; expected unix:///path/to/redis.sock');
+      $this->setExpectedExceptionShim('CredisException', 'Invalid unix socket format; expected unix:///path/to/redis.sock');
       $this->credis = new Credis_Client('unix://path/to/redis.sock');
       if ($this->useStandalone) {
           $this->credis->forceStandalone();
@@ -825,75 +797,67 @@ class CredisTest extends CredisTestCommon
   public function testForceStandAloneAfterEstablishedConnection()
   {
       $this->credis->connect();
-      if ( ! $this->useStandalone) {
-          $this->setExpectedExceptionShim('CredisException','Cannot force Credis_Client to use standalone PHP driver after a connection has already been established.');
+      if (! $this->useStandalone) {
+          $this->setExpectedExceptionShim('CredisException', 'Cannot force Credis_Client to use standalone PHP driver after a connection has already been established.');
       }
       $this->credis->forceStandalone();
       $this->assertTrue(true);
   }
   public function testHscan()
   {
-      $this->credis->hmset('hash',array('name' => 'Jack','age' =>33));
+      $this->credis->hmset('hash', array('name' => 'Jack','age' =>33));
       $iterator = null;
-      $result = $this->credis->hscan($iterator,'hash','n*',10);
-      $this->assertEquals($iterator,0);
-      $this->assertEquals($result,['name'=>'Jack']);
-	}
+      $result = $this->credis->hscan($iterator, 'hash', 'n*', 10);
+      $this->assertEquals($iterator, 0);
+      $this->assertEquals($result, ['name'=>'Jack']);
+  }
     public function testSscan()
     {
-        $this->credis->sadd('set','name','Jack');
-        $this->credis->sadd('set','age','33');
+        $this->credis->sadd('set', 'name', 'Jack');
+        $this->credis->sadd('set', 'age', '33');
         $iterator = null;
-        $result = $this->credis->sscan($iterator,'set','n*',10);
-        $this->assertEquals($iterator,0);
-        $this->assertEquals($result,[0=>'name']);
+        $result = $this->credis->sscan($iterator, 'set', 'n*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, [0=>'name']);
     }
     public function testZscan()
     {
-        $this->credis->zadd('sortedset',0,'name');
-        $this->credis->zadd('sortedset',1,'age');
+        $this->credis->zadd('sortedset', 0, 'name');
+        $this->credis->zadd('sortedset', 1, 'age');
         $iterator = null;
-        $result = $this->credis->zscan($iterator,'sortedset','n*',10);
-        $this->assertEquals($iterator,0);
-        $this->assertEquals($result,['name'=>'0']);
+        $result = $this->credis->zscan($iterator, 'sortedset', 'n*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, ['name'=>'0']);
     }
     public function testscan()
     {
         $seen = array();
-        for($i = 0; $i < 100; $i++)
-        {
+        for ($i = 0; $i < 100; $i++) {
             $this->credis->set('name.' . $i, 'Jack');
             $this->credis->set('age.' . $i, '33');
         }
         $iterator = null;
-        do
-        {
+        do {
             $result = $this->credis->scan($iterator, 'n*', 10);
-            if ($result === false)
-            {
+            if ($result === false) {
                 $this->assertEquals($iterator, 0);
                 break;
-            }
-            else
-            {
-                foreach($result as $key)
-                {
+            } else {
+                foreach ($result as $key) {
                     $seen[$key] = true;
                 }
             }
-        }
-        while($iterator);
+        } while ($iterator);
         $this->assertEquals(count($seen), 100);
     }
 
   public function testPing()
   {
-    $pong = $this->credis->ping();
-    $this->assertEquals("PONG",$pong);
-    if (version_compare(phpversion('redis'), '5.0.0', '>='))
-    {
-      $pong = $this->credis->ping("test");
-      $this->assertEquals("test", $pong);
-    }
+      $pong = $this->credis->ping();
+      $this->assertEquals("PONG", $pong);
+      if (version_compare(phpversion('redis'), '5.0.0', '>=')) {
+          $pong = $this->credis->ping("test");
+          $this->assertEquals("test", $pong);
+      }
   }
 }
