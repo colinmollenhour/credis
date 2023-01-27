@@ -56,7 +56,8 @@ class CredisException extends Exception
  * @method int|Credis_Client           dbsize()
  *
  * Keys:
- * @method int|Credis_Client           del(string|array $key)
+ * @method int|Credis_Client           del(string... $key)
+ * @method int|Credis_Client           unlink(string... $key)
  * @method int|Credis_Client           exists(string $key)
  * @method int|Credis_Client           expire(string $key, int $seconds)
  * @method int|Credis_Client           expireAt(string $key, int $timestamp)
@@ -1154,6 +1155,7 @@ class Credis_Client
                 case 'hmset':
                 case 'hmget':
                 case 'del':
+                case 'unlink':
                 case 'zrangebyscore':
                 case 'zrevrangebyscore':
                     break;

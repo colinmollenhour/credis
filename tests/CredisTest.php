@@ -80,7 +80,7 @@ class CredisTest extends CredisTestCommon
 
         // Array
         $this->assertTrue($this->credis->mSet(array('bar' => 'BAR', 'apple' => 'red')));
-        $mGet = $this->credis->mGet(array('foo','bar','empty'));
+        $mGet = $this->credis->mGet(array('foo', 'bar', 'empty'));
         $this->assertTrue(in_array('FOO', $mGet));
         $this->assertTrue(in_array('BAR', $mGet));
         $this->assertTrue(in_array('', $mGet));
@@ -94,6 +94,13 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(2, $this->credis->del('foo', 'bar'));
         $this->assertFalse($this->credis->get('foo'));
         $this->assertFalse($this->credis->get('bar'));
+
+        // Unlink keys
+        $this->assertTrue($this->credis->mSet(array('t1' => 'a', 't2' => 'b', 't3' => 'c')));
+        $this->assertEquals(2, $this->credis->unlink('t1', 't2'));
+        $this->assertFalse($this->credis->get('t1'));
+        $this->assertFalse($this->credis->get('t2'));
+        $this->assertEquals('c', $this->credis->get('t3'));
 
         // Long string
         $longString = str_repeat(md5('asd'), 4096); // 128k (redis.h REDIS_INLINE_MAX_SIZE = 64k)
