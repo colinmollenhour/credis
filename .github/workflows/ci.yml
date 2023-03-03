@@ -46,6 +46,8 @@ jobs:
         fi
 
     - name: Run PHP CS Fixer
+      env:
+        PHP_CS_FIXER_IGNORE_ENV: 1
       run: |
         if [ -f ./vendor/bin/php-cs-fixer ]; then
           ./vendor/bin/php-cs-fixer fix --diff --dry-run
