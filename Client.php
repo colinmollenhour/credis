@@ -1027,6 +1027,9 @@ class Credis_Client
                     if (isset($args[0]) && is_array($args[0])) {
                         $args = array_values($args[0]);
                     }
+                    if (is_array($args) && count($args) === 0) {
+                        return false;
+                    }
                     break;
                 case 'hmset':
                     if (isset($args[1]) && is_array($args[1])) {

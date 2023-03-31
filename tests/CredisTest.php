@@ -84,11 +84,17 @@ class CredisTest extends CredisTestCommon
         $this->assertTrue(in_array('FOO', $mGet));
         $this->assertTrue(in_array('BAR', $mGet));
         $this->assertTrue(in_array('', $mGet));
+        $mGet = $this->credis->mGet(array('foo'));
+        $this->assertTrue(in_array('FOO', $mGet));
+        $mGet = $this->credis->mGet(array());
+        $this->assertTrue($mGet === false);
 
         // Non-array
         $mGet = $this->credis->mGet('foo', 'bar');
         $this->assertTrue(in_array('FOO', $mGet));
         $this->assertTrue(in_array('BAR', $mGet));
+        $mGet = $this->credis->mGet('foo');
+        $this->assertTrue(in_array('FOO', $mGet));
 
         // Delete strings and check they are deleted
         $this->assertEquals(2, $this->credis->del('foo', 'bar'));
