@@ -845,7 +845,7 @@ class CredisTest extends CredisTestCommon
     {
         $this->credis->sadd('set', 'foo', 'bar');
         $iterator = 0;
-        $result = $this->credis->zscan($iterator, 'set','*', 10);
+        $result = $this->credis->zscan($iterator, 'set', '*', 10);
         $this->assertEquals($iterator, 0);
         $this->assertEquals($result, false);
     }
@@ -864,7 +864,7 @@ class CredisTest extends CredisTestCommon
     {
         $this->credis->zadd('sortedset', 0, 'name');
         $iterator = 0;
-        $result = $this->credis->zscan($iterator, 'sortedset','*', 10);
+        $result = $this->credis->zscan($iterator, 'sortedset', '*', 10);
         $this->assertEquals($iterator, 0);
         $this->assertEquals($result, false);
     }
