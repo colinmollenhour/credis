@@ -824,11 +824,11 @@ class CredisTest extends CredisTestCommon
 
     public function testHscanEmptyIterator()
     {
-      $this->credis->hmset('set', ['foo' => 'bar']);
-      $iterator = 0;
-      $result = $this->credis->zscan($iterator, 'hash','*', 10);
-      $this->assertEquals($iterator, 0);
-      $this->assertEquals($result, false);
+        $this->credis->hmset('set', ['foo' => 'bar']);
+        $iterator = 0;
+        $result = $this->credis->zscan($iterator, 'hash', '*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, false);
     }
 
     public function testSscan()
@@ -843,11 +843,11 @@ class CredisTest extends CredisTestCommon
 
     public function testSscanEmptyIterator()
     {
-      $this->credis->sadd('set', 'foo', 'bar');
-      $iterator = 0;
-      $result = $this->credis->zscan($iterator, 'set','*', 10);
-      $this->assertEquals($iterator, 0);
-      $this->assertEquals($result, false);
+        $this->credis->sadd('set', 'foo', 'bar');
+        $iterator = 0;
+        $result = $this->credis->zscan($iterator, 'set','*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, false);
     }
 
     public function testZscan()
@@ -862,11 +862,11 @@ class CredisTest extends CredisTestCommon
 
     public function testZscanEmptyIterator()
     {
-      $this->credis->zadd('sortedset', 0, 'name');
-      $iterator = 0;
-      $result = $this->credis->zscan($iterator, 'sortedset','*', 10);
-      $this->assertEquals($iterator, 0);
-      $this->assertEquals($result, false);
+        $this->credis->zadd('sortedset', 0, 'name');
+        $iterator = 0;
+        $result = $this->credis->zscan($iterator, 'sortedset','*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, false);
     }
 
     public function testscan()
@@ -893,11 +893,11 @@ class CredisTest extends CredisTestCommon
 
     public function testscanEmptyIterator()
     {
-      $this->credis->set('foo', 'bar');
-      $iterator = 0;
-      $result = $this->credis->scan($iterator, '*', 10);
-      $this->assertEquals($iterator, 0);
-      $this->assertEquals($result, false);
+        $this->credis->set('foo', 'bar');
+        $iterator = 0;
+        $result = $this->credis->scan($iterator, '*', 10);
+        $this->assertEquals($iterator, 0);
+        $this->assertEquals($result, false);
     }
 
   public function testPing()
