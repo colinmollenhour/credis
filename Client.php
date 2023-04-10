@@ -770,7 +770,7 @@ class Credis_Client
     }
 
     /**
-     * @param int $Iterator
+     * @param ?int $Iterator
      * @param string $pattern
      * @param int $count
      * @return bool|array
@@ -781,7 +781,7 @@ class Credis_Client
     }
 
     /**
-     * @param int $Iterator
+     * @param ?int $Iterator
      * @param string $field
      * @param string $pattern
      * @param int $count
@@ -793,7 +793,7 @@ class Credis_Client
     }
 
     /**
-     * @param int $Iterator
+     * @param ?int $Iterator
      * @param string $field
      * @param string $pattern
      * @param int $Iterator
@@ -805,7 +805,7 @@ class Credis_Client
     }
 
     /**
-     * @param int $Iterator
+     * @param ?int $Iterator
      * @param string $field
      * @param string $pattern
      * @param int $Iterator
