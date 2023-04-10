@@ -821,6 +821,16 @@ class CredisTest extends CredisTestCommon
       $this->assertEquals($iterator, 0);
       $this->assertEquals($result, ['name'=>'Jack']);
   }
+
+    public function testHscanEmptyIterator()
+    {
+      $this->credis->hmset('set', ['foo' => 'bar']);
+      $iterator = 0;
+      $result = $this->credis->zscan($iterator, 'hash','*', 10);
+      $this->assertEquals($iterator, 0);
+      $this->assertEquals($result, false);
+    }
+
     public function testSscan()
     {
         $this->credis->sadd('set', 'name', 'Jack');
@@ -830,6 +840,16 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals($iterator, 0);
         $this->assertEquals($result, [0=>'name']);
     }
+
+    public function testSscanEmptyIterator()
+    {
+      $this->credis->sadd('set', 'foo', 'bar');
+      $iterator = 0;
+      $result = $this->credis->zscan($iterator, 'set','*', 10);
+      $this->assertEquals($iterator, 0);
+      $this->assertEquals($result, false);
+    }
+
     public function testZscan()
     {
         $this->credis->zadd('sortedset', 0, 'name');
@@ -839,6 +859,16 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals($iterator, 0);
         $this->assertEquals($result, ['name'=>'0']);
     }
+
+    public function testZscanEmptyIterator()
+    {
+      $this->credis->zadd('sortedset', 0, 'name');
+      $iterator = 0;
+      $result = $this->credis->zscan($iterator, 'sortedset','*', 10);
+      $this->assertEquals($iterator, 0);
+      $this->assertEquals($result, false);
+    }
+
     public function testscan()
     {
         $seen = array();
@@ -859,6 +889,15 @@ class CredisTest extends CredisTestCommon
             }
         } while ($iterator);
         $this->assertEquals(count($seen), 100);
+    }
+
+    public function testscanEmptyIterator()
+    {
+      $this->credis->set('foo', 'bar');
+      $iterator = 0;
+      $result = $this->credis->scan($iterator, '*', 10);
+      $this->assertEquals($iterator, 0);
+      $this->assertEquals($result, false);
     }
 
   public function testPing()

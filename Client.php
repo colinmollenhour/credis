@@ -974,8 +974,10 @@ class Credis_Client
                     break;
                 case 'scan':
                     $trackedArgs = array(&$args[0]);
-                    if (empty($trackedArgs[0])) {
+                    if ($trackedArgs[0] === null) {
                         $trackedArgs[0] = 0;
+                    } elseif ($trackedArgs[0] === 0) {
+                        return false;
                     }
                     $eArgs = array($trackedArgs[0]);
                     if (!empty($args[1])) {
@@ -992,8 +994,10 @@ class Credis_Client
                 case 'zscan':
                 case 'hscan':
                     $trackedArgs = array(&$args[1]);
-                    if (empty($trackedArgs[0])) {
+                    if ($trackedArgs[0] === null) {
                         $trackedArgs[0] = 0;
+                    } elseif ($trackedArgs[0] === 0) {
+                        return false;
                     }
                     $eArgs = array($args[0], $trackedArgs[0]);
                     if (!empty($args[2])) {
