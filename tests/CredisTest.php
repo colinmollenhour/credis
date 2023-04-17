@@ -487,7 +487,15 @@ class CredisTest extends CredisTestCommon
 
         $reply = $this->credis->multi()
                               ->set('a', 3)
-                              ->lpop('a')
+                              ->lpop('a') // bad operation for "a"'s type
+                              ->exec();
+        $this->assertEquals(2, count($reply));
+        $this->assertEquals(true, $reply[0]);
+        $this->assertFalse($reply[1]);
+
+        $reply = $this->credis->multi()->pipeline()
+                              ->set('a', 3)
+                              ->lpop('a') // bad operation for "a"'s type
                               ->exec();
         $this->assertEquals(2, count($reply));
         $this->assertEquals(true, $reply[0]);
