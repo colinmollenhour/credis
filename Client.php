@@ -1066,41 +1066,48 @@ class Credis_Client
                 if ($name === 'pipeline') {
                     throw new CredisException('A pipeline is already in use and only one pipeline is supported.');
                 } elseif ($name === 'exec') {
-                    if ($this->isMulti) {
-                        $this->commandNames[] = array($name, $trackedArgs);
-                        $this->commands .= self::_prepare_command(array($this->getRenamedCommand($name)));
+                    $isMulti = $this->isMulti;
+                    $commandNames = $this->commandNames;
+                    $commands = $this->commands;
+                    $this->commands = $this->commandNames = null;
+
+                    if ($isMulti) {
+                        $commandNames[] = array($name, $trackedArgs);
+                        $commands .= self::_prepare_command(array($this->getRenamedCommand($name)));
                     }
 
-                    // Write request
-                    if ($this->commands) {
-                        $this->write_command($this->commands);
-                    }
-                    $this->commands = null;
-
-                    // Read response
-                    $queuedResponses = array();
-                    $response = array();
-                    foreach ($this->commandNames as $command) {
-                        list($name, $arguments) = $command;
-                        $result = $this->read_reply($name, true);
-                        if ($result !== null) {
-                            $result = $this->decode_reply($name, $result, $arguments);
-                        } else {
-                            $queuedResponses[] = $command;
+                    try {
+                        // Write request
+                        if ($commands) {
+                            $this->write_command($commands);
                         }
-                        $response[] = $result;
-                    }
 
-                    if ($this->isMulti) {
-                        $response = array_pop($response);
-                        foreach ($queuedResponses as $key => $command) {
+                        // Read response
+                        $queuedResponses = array();
+                        $response = array();
+                        foreach ($commandNames as $command) {
                             list($name, $arguments) = $command;
-                            $response[$key] = $this->decode_reply($name, $response[$key], $arguments);
+                            $result = $this->read_reply($name, true);
+                            if ($result !== null) {
+                                $result = $this->decode_reply($name, $result, $arguments);
+                            } else {
+                                $queuedResponses[] = $command;
+                            }
+                            $response[] = $result;
                         }
-                    }
 
-                    $this->commandNames = null;
-                    $this->usePipeline = $this->isMulti = false;
+                        if ($isMulti) {
+                            $response = array_pop($response);
+                            foreach ($queuedResponses as $key => $command) {
+                                list($name, $arguments) = $command;
+                                $response[$key] = $this->decode_reply($name, $response[$key], $arguments);
+                            }
+                        }
+                    } catch (CredisException $e) {
+                        // the connection on redis's side is likely in a bad state, force it closed to abort the pipeline/transaction
+                        $this->close(true);
+                        throw $e;
+                    }
                     return $response;
                 } elseif ($name === 'discard') {
                     $this->commands = null;
