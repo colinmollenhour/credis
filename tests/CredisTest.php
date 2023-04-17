@@ -320,6 +320,14 @@ class CredisTest extends CredisTestCommon
         $this->credis->pipeline();
         $this->pipelineTestInternal();
         $this->assertEquals(array(), $this->credis->pipeline()->exec());
+
+        try {
+            $iterator = null;
+            $reply = $this->credis->pipeline()->scan($iterator, '*')->exec();
+            $this->assertFalse($reply);
+        } catch (CredisException $e) {
+            $this->assertStringStartsWith('multi()/pipeline() mode can not be used with', $e->getMessage());
+        }
     }
 
     public function testPipelineMulti()
@@ -330,6 +338,14 @@ class CredisTest extends CredisTestCommon
         $this->credis->pipeline()->multi();
         $this->pipelineTestInternal();
         $this->assertEquals(array(), $this->credis->pipeline()->multi()->exec());
+
+        try {
+            $iterator = null;
+            $reply = $this->credis->pipeline()->multi()->scan($iterator, '*')->exec();
+            $this->assertFalse($reply);
+        } catch (CredisException $e) {
+            $this->assertStringStartsWith('multi()/pipeline() mode can not be used with', $e->getMessage());
+        }
     }
 
     public function testWatchMultiUnwatch()
@@ -357,6 +373,7 @@ class CredisTest extends CredisTestCommon
         $reply = $this->credis
             ->set('a', 123)
             ->get('a')
+            ->mGet([]) // will be dropped from return result by phpredis
             ->sAdd('b', 123)
             ->sMembers('b')
             ->set('empty', '')
@@ -384,6 +401,7 @@ class CredisTest extends CredisTestCommon
             array(
                 true,               // set('a', 123)
                 '123',              // get('a')
+                //[],                 // get([]) - phpredis doesn't return this
                 1,                  // sAdd('b', 123)
                 array(123),         // sMembers('b')
                 true,               // set('empty', '')
@@ -500,6 +518,9 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(2, count($reply));
         $this->assertEquals(true, $reply[0]);
         $this->assertFalse($reply[1]);
+
+        $this->assertEquals(array(), $this->credis->multi()->multi()->exec());
+        $this->assertEquals(array(), $this->credis->pipeline()->multi()->multi()->exec());
     }
 
     public function testServer()
