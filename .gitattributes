@@ -6,3 +6,6 @@
 /.travis.yml export-ignore
 /composer.lock export-ignore
 /phpunit.xml export-ignore
+*.php text eol=lf
+*.js text eol=lf
+*.md text eol=lf
