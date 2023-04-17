@@ -444,27 +444,43 @@ class CredisTest extends CredisTestCommon
     public function testTransaction()
     {
         $reply = $this->credis->multi()
-                ->incr('foo')
-                ->incr('bar')
-                ->exec();
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
         $this->assertEquals(array(1,1), $reply);
 
         $reply = $this->credis->pipeline()->multi()
-                ->incr('foo')
-                ->incr('bar')
-                ->exec();
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
         $this->assertEquals(array(2,2), $reply);
 
+        $reply = $this->credis->pipeline()
+                              ->incr('foo')
+                              ->multi()
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
+        $this->assertEquals(array(3,4,3), $reply);
+
         $reply = $this->credis->multi()->pipeline()
-                ->incr('foo')
-                ->incr('bar')
-                ->exec();
-        $this->assertEquals(array(3,3), $reply);
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
+        $this->assertEquals(array(5,4), $reply);
 
         $reply = $this->credis->multi()
-                ->set('a', 3)
-                ->lpop('a')
-                ->exec();
+                              ->incr('foo')
+                              ->pipeline()
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
+        $this->assertEquals(array(6,7,5), $reply);
+
+        $reply = $this->credis->multi()
+                              ->set('a', 3)
+                              ->lpop('a')
+                              ->exec();
         $this->assertEquals(2, count($reply));
         $this->assertEquals(true, $reply[0]);
         $this->assertFalse($reply[1]);
