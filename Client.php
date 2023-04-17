@@ -1070,6 +1070,7 @@ class Credis_Client
                     $commandNames = $this->commandNames;
                     $commands = $this->commands;
                     $this->commands = $this->commandNames = null;
+                    $this->isMulti = $this->usePipeline = false;
 
                     if ($isMulti) {
                         $commandNames[] = array($name, $trackedArgs);
