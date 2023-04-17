@@ -1073,7 +1073,7 @@ class Credis_Client
                     $this->isMulti = $this->usePipeline = false;
 
                     if ($isMulti) {
-                        $commandNames[] = array($name, $trackedArgs);
+                        $commandNames[] = array($name, $trackedArgs, true);
                         $commands .= self::_prepare_command(array($this->getRenamedCommand($name)));
                     }
 
@@ -1087,21 +1087,31 @@ class Credis_Client
                         $queuedResponses = array();
                         $response = array();
                         foreach ($commandNames as $command) {
-                            list($name, $arguments) = $command;
+                            list($name, $arguments, $requireDispatch) = $command;
+                            if (!$requireDispatch) {
+                                $queuedResponses[] = $command;
+                                continue;
+                            }
                             $result = $this->read_reply($name, true);
                             if ($result !== null) {
+                                if ($name === 'multi') {
+                                    if ($result !== true) {
+                                        throw new CredisException('Redis cmd ('.$name.') returned unexpected return value:'.var_export($result, true));
+                                    }
+                                    continue;
+                                }
                                 $result = $this->decode_reply($name, $result, $arguments);
+                                $response[] = $result;
                             } else {
                                 $queuedResponses[] = $command;
                             }
-                            $response[] = $result;
                         }
 
                         if ($isMulti) {
-                            $response = array_pop($response);
+                            $execResponse = array_pop($response);
                             foreach ($queuedResponses as $key => $command) {
                                 list($name, $arguments) = $command;
-                                $response[$key] = $this->decode_reply($name, $response[$key], $arguments);
+                                $response[] = $this->decode_reply($name, $execResponse[$key], $arguments);
                             }
                         }
                     } catch (CredisException $e) {
@@ -1119,7 +1129,7 @@ class Credis_Client
                         $this->isMulti = true;
                     }
                     array_unshift($args, $this->getRenamedCommand($name));
-                    $this->commandNames[] = array($name, $trackedArgs);
+                    $this->commandNames[] = array($name, $trackedArgs, true);
                     $this->commands .= self::_prepare_command($args);
                     return $this;
                 }
@@ -1128,7 +1138,9 @@ class Credis_Client
             // Start pipeline mode
             if ($name === 'pipeline') {
                 $this->usePipeline = true;
-                $this->commandNames = array();
+                if (!$this->isMulti) {
+                    $this->commandNames = [];
+                }
                 $this->commands = '';
                 return $this;
             }
@@ -1141,18 +1153,29 @@ class Credis_Client
             // Non-pipeline mode
             array_unshift($args, $this->getRenamedCommand($name));
             $command = self::_prepare_command($args);
-            $this->write_command($command);
-            $response = $this->read_reply($name);
-            $response = $this->decode_reply($name, $response, $trackedArgs);
+            // transaction mode needs to track commands
+            if ($this->isMulti && $name !== 'exec' && $name !== 'discard') {
+                $this->commandNames[] = array($name, $trackedArgs, false);
+                $this->write_command($command);
+                $response = $this->read_reply($name, true);
+                if ($response !== null) {
+                    throw new CredisException('Redis cmd ('.$name.') returned unexpected return value:'.var_export($response, true));
+                }
+            } else {
+                $this->write_command($command);
+                $response = $this->read_reply($name);
+                $response = $this->decode_reply($name, $response, $trackedArgs);
+            }
 
             // Watch mode disables reconnect so error is thrown
-            if ($name == 'watch') {
+            if ($name === 'watch') {
                 $this->isWatching = true;
             } // Transaction mode
-            elseif ($this->isMulti && ($name == 'exec' || $name == 'discard')) {
+            elseif ($this->isMulti && ($name === 'exec' || $name === 'discard')) {
                 $this->isMulti = false;
+                $this->commandNames = [];
             } // Started transaction
-            elseif ($this->isMulti || $name == 'multi') {
+            elseif ($this->isMulti || $name === 'multi') {
                 $this->isMulti = true;
                 $response = $this;
             }
