@@ -953,6 +953,7 @@ class Credis_Client
 
         // Send request via native PHP
         if ($this->standalone) {
+            // Early returns should verify how phpredis behaves!
             $trackedArgs = array();
             switch ($name) {
                 case 'eval':
@@ -1054,7 +1055,7 @@ class Credis_Client
                         $args = array_values($args[0]);
                     }
                     if (is_array($args) && count($args) === 0) {
-                        return false;
+                        return ($this->isMulti || $this->usePipeline) ? $this : false;
                     }
                     break;
                 case 'hmset':
