@@ -759,6 +759,20 @@ class Credis_Client
     }
 
     /**
+     * @param string $caller
+     * @return void
+     * @throws CredisException
+     */
+    protected function assertNotPipelineOrMulti($caller)
+    {
+        if ($this->standalone && ($this->isMulti || $this->usePipeline) ||
+            // phpredis triggers a php fatal error, so do the check before
+            !$this->standalone && ($this->redis->getMode() === Redis::MULTI || $this->redis->getMode() === Redis::PIPELINE)) {
+            throw new CredisException('multi()/pipeline() mode can not be used with '.$caller);
+        }
+    }
+
+    /**
      * @param string|array $pattern
      * @return array
      */
@@ -774,9 +788,11 @@ class Credis_Client
      * @param string $pattern
      * @param int $count
      * @return bool|array
+     * @throws CredisException
      */
     public function scan(&$Iterator, $pattern = null, $count = null)
     {
+        $this->assertNotPipelineOrMulti(__METHOD__);
         return $this->__call('scan', array(&$Iterator, $pattern, $count));
     }
 
@@ -786,9 +802,11 @@ class Credis_Client
      * @param string $pattern
      * @param int $count
      * @return bool|array
+     * @throws CredisException
      */
     public function hscan(&$Iterator, $field, $pattern = null, $count = null)
     {
+        $this->assertNotPipelineOrMulti(__METHOD__);
         return $this->__call('hscan', array($field, &$Iterator, $pattern, $count));
     }
 
@@ -798,9 +816,11 @@ class Credis_Client
      * @param string $pattern
      * @param int $Iterator
      * @return bool|array
+     * @throws CredisException
      */
     public function sscan(&$Iterator, $field, $pattern = null, $count = null)
     {
+        $this->assertNotPipelineOrMulti(__METHOD__);
         return $this->__call('sscan', array($field, &$Iterator, $pattern, $count));
     }
 
@@ -810,9 +830,11 @@ class Credis_Client
      * @param string $pattern
      * @param int $Iterator
      * @return bool|array
+     * @throws CredisException
      */
     public function zscan(&$Iterator, $field, $pattern = null, $count = null)
     {
+        $this->assertNotPipelineOrMulti(__METHOD__);
         return $this->__call('zscan', array($field, &$Iterator, $pattern, $count));
     }
 
