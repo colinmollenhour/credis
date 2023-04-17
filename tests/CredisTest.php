@@ -463,11 +463,19 @@ class CredisTest extends CredisTestCommon
                               ->exec();
         $this->assertEquals(array(3,4,3), $reply);
 
+        $reply = $this->credis->multi()
+                              ->incr('foo')
+                              ->pipeline()
+                              ->incr('foo')
+                              ->incr('bar')
+                              ->exec();
+        $this->assertEquals(array(5,6,4), $reply);
+
         $reply = $this->credis->multi()->pipeline()
                               ->incr('foo')
                               ->incr('bar')
                               ->exec();
-        $this->assertEquals(array(5,4), $reply);
+        $this->assertEquals(array(7,5), $reply);
 
         $reply = $this->credis->multi()
                               ->incr('foo')
@@ -475,7 +483,7 @@ class CredisTest extends CredisTestCommon
                               ->incr('foo')
                               ->incr('bar')
                               ->exec();
-        $this->assertEquals(array(6,7,5), $reply);
+        $this->assertEquals(array(8,9,6), $reply);
 
         $reply = $this->credis->multi()
                               ->set('a', 3)
