@@ -1080,6 +1080,12 @@ class Credis_Client
                         $trackedArgs = $args[1];
                     }
                     break;
+                case 'multi':
+                    // calling multi() multiple times is a no-op
+                    if ($this->isMulti) {
+                        return $this;
+                    }
+                    break;
             }
             // Flatten arguments
             $args = self::_flattenArguments($args);
@@ -1112,9 +1118,6 @@ class Credis_Client
                             $result = $this->read_reply($name, true);
                             if ($result !== null) {
                                 if ($name === 'multi') {
-                                    if ($result !== true) {
-                                        throw new CredisException('Redis cmd ('.$name.') in transaction returned unexpected return value:'.var_export($result, true));
-                                    }
                                     continue;
                                 }
                                 $result = $this->decode_reply($name, $result, $arguments);
