@@ -44,12 +44,12 @@ class CredisException extends Exception
  * Server/Connection:
  * @method Credis_Client               pipeline()
  * @method Credis_Client               multi()
- * @method Credis_Client               watch(string ...$keys)
- * @method Credis_Client               unwatch()
+ * @method Credis_Client|bool          watch(string ...$keys)
+ * @method Credis_Client|bool          unwatch()
  * @method array                       exec()
- * @method array                       discard()
- * @method string|Credis_Client        flushAll()
- * @method string|Credis_Client        flushDb()
+ * @method bool                        discard()
+ * @method Credis_Client|bool          flushAll()
+ * @method Credis_Client|bool          flushDb()
  * @method array|Credis_Client         info(string $section = null)
  * @method bool|array|Credis_Client    config(string $setGet, string $key, string $value = null)
  * @method array|Credis_Client         role()
@@ -163,8 +163,8 @@ class CredisException extends Exception
  *
  * Scripting:
  * @method string|int|Credis_Client    script(string $command, string $arg1 = null)
- * @method string|int|array|bool|Credis_Client eval(string $script, array $keys = null, array $args = null)
- * @method string|int|array|bool|Credis_Client evalSha(string $script, array $keys = null, array $args = null)
+ * @method string|int|array|bool|Credis_Client eval(string $script, array|string $keys = null, array|string $args = null)
+ * @method string|int|array|bool|Credis_Client evalSha(string $script, array|string $keys = null, array|string $args = null)
  */
 class Credis_Client
 {
