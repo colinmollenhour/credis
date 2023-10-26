@@ -47,6 +47,7 @@ class CredisException extends Exception
  * @method Credis_Client               watch(string ...$keys)
  * @method Credis_Client               unwatch()
  * @method array                       exec()
+ * @method array                       discard()
  * @method string|Credis_Client        flushAll()
  * @method string|Credis_Client        flushDb()
  * @method array|Credis_Client         info(string $section = null)
