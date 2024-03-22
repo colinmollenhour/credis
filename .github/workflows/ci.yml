@@ -15,6 +15,10 @@ jobs:
             phpunit: '^9'
           - php-version: '8.2'
             phpunit: '^9'
+          - php-version: '8.3'
+            phpunit: '^9'
+          - php-version: '8.4'
+            phpunit: '^9'
     name: PHP ${{ matrix.php-version }}
     steps:
     - name: Checkout
