@@ -346,7 +346,7 @@ class Credis_Client
      * @param array|null $tlsOptions The TLS/SSL context options. See https://www.php.net/manual/en/context.ssl.php for details
      * @throws CredisException
      */
-    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = null, $persistent = '', $db = 0, $password = null, $username = null, array $tlsOptions = null)
+    public function __construct($host = '127.0.0.1', $port = 6379, $timeout = null, $persistent = '', $db = 0, $password = null, $username = null, $tlsOptions = null)
     {
         $this->host = (string)$host;
         if ($port !== null) {
@@ -360,7 +360,7 @@ class Credis_Client
         $this->authUsername = $username;
         $this->selectedDb = (int)$db;
         $this->convertHost();
-        if ($tlsOptions) {
+        if (is_array($tlsOptions) && count($tlsOptions) !== 0) {
             $this->setTlsOptions($tlsOptions);
         }
         // PHP Redis extension support TLS/ACL AUTH since 5.3.0
