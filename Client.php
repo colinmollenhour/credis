@@ -1152,8 +1152,7 @@ class Credis_Client
 
                         if ($this->isMulti) {
                             $execResponse = array_pop($response);
-                            if(!empty($execResponse))
-			    {
+                            if(!empty($execResponse)) {
                         	foreach ($queuedResponses as $key => $command) {
                             	    list($name, $arguments) = $command;
                             	    $response[] = $this->decode_reply($name, $execResponse[$key], $arguments);
