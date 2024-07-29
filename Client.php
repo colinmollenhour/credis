@@ -1226,9 +1226,26 @@ class Credis_Client
                     throw $e;
                 }
             } else {
-                $this->write_command($command);
-                $response = $this->read_reply($name);
-                $response = $this->decode_reply($name, $response, $trackedArgs);
+                $retryCount = 0;
+                $maxRetries = 5;
+
+                while ($retryCount < $maxRetries) {
+                    try {
+                        $this->write_command($command);
+                        $response = $this->read_reply($name);
+                        $response = $this->decode_reply($name, $response, $trackedArgs);
+                        break; // Exit loop if successful
+                    } catch (CredisException $e) {
+                        if (strpos($e->getMessage(), 'BUSY') === 0) {
+                            $retryCount++;
+                            if ($retryCount >= $maxRetries) {
+                                throw $e; // Rethrow exception after max retries
+                            }
+                        } else {
+                            throw $e; // Rethrow exception if message does not contain 'BUSY'
+                        }
+                    }
+                }
             }
 
             // Watch mode disables reconnect so error is thrown
