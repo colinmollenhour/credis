@@ -21,7 +21,8 @@
  */
 
 /**
- * Credis_ClusterClient, subclass to Credis_Client that uses RedisCluster
+ * Credis_ClusterClient, subclass to Credis_Client that uses RedisCluster (in phpredis extension)
+ * Note: RedisCluster currently has limitations like not supporting pipeline or multi.
  */
 class Credis_ClusterClient extends Credis_Client
 {
@@ -46,8 +47,7 @@ class Credis_ClusterClient extends Credis_Client
 
 
     /**
-     * Creates a connection to the Redis server on host {@link $host} and port {@link $port}.
-     * $host may also be a path to a unix socket or a string in the form of tcp://[hostname]:[port] or unix://[path]
+     * Creates a connection to the Redis Cluster on cluser named {@link $clusterName} or seeds {@link $clusterSeeds}.
      *
      * @param string|null $clusterName Name of the cluster as configured in redis.ini
      * @param array|null $clusterSeeds Hosts & ports of the cluster; eg: ['redis-node-1:6379', 'redis-node-2:6379']
@@ -56,6 +56,7 @@ class Credis_ClusterClient extends Credis_Client
      * @param bool $persistentBool Flag to establish persistent connection
      * @param string|null $password The authentication password of the Redis server
      * @param string|null $username The authentication username of the Redis server
+     * @param array|null $tlsOptions The authentication username of the Redis server
      * @throws CredisException
      */
     public function __construct(?string $clusterName, ?array $clusterSeeds = [], $timeout = null, $readTimeout = null, $persistentBool = false, $password = null, $username = null, $tlsOptions = null)
@@ -78,8 +79,7 @@ class Credis_ClusterClient extends Credis_Client
     }
 
     /**
-     * @return this
-     * @throws CredisException
+     * @inheritDoc
      */
     public function connect()
     {
@@ -94,7 +94,7 @@ class Credis_ClusterClient extends Credis_Client
                 $this->timeout,
                 $this->readTimeout,
                 $this->persistentBool, // Note:  This can't be $this->persistent, because it is string
-                ['user' => $this->authUsername, 'pass' => $this->authUsername],
+                ['user' => $this->authUsername, 'pass' => $this->authPassword],
                 $this->tlsOptions,
             );
             $this->connectFailures = 0;
@@ -103,5 +103,4 @@ class Credis_ClusterClient extends Credis_Client
         }
         return $this;
     }
-
 }
