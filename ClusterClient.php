@@ -95,7 +95,7 @@ class Credis_ClusterClient extends Credis_Client
                 $this->readTimeout,
                 $this->persistentBool, // Note:  This can't be $this->persistent, because it is string
                 ['user' => $this->authUsername, 'pass' => $this->authPassword],
-                $this->tlsOptions,
+                empty($this->tlsOptions) ? null : $this->tlsOptions,
             );
             $this->connectFailures = 0;
             $this->connected = true;
