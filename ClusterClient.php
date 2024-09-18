@@ -95,6 +95,7 @@ class Credis_ClusterClient extends Credis_Client
                 $this->readTimeout,
                 $this->persistentBool, // Note:  This can't be $this->persistent, because it is string
                 ['user' => $this->authUsername, 'pass' => $this->authPassword],
+                // Note: RedisCluster uses TLS even if empty array is passed here, so we must pass null instead
                 empty($this->tlsOptions) ? null : $this->tlsOptions,
             );
             $this->connectFailures = 0;
