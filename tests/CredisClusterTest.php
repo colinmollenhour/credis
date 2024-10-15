@@ -1,212 +1,278 @@
 <?php
 
-require_once dirname(__FILE__).'/../Client.php';
+require_once dirname(__FILE__).'/CredisTest.php';
 require_once dirname(__FILE__).'/../Cluster.php';
-require_once dirname(__FILE__).'/CredisTestCommon.php';
 
-class CredisClusterTest extends CredisTestCommon
+class CredisClusterTest extends CredisTest
 {
-    /** @var Credis_Cluster */
-    protected $cluster;
-
+    /**
+     * @inheritDoc
+     */
     protected function setUpInternal()
     {
-        parent::setUpInternal();
-
-        $clients = array_slice($this->redisConfig, 0, 4);
-        $this->cluster = new Credis_Cluster($clients, 2, $this->useStandalone);
-    }
-
-    protected function tearDownInternal()
-    {
-        if ($this->cluster) {
-            $this->cluster->flushAll();
-            foreach ($this->cluster->clients() as $client) {
-                if ($client->isConnected()) {
-                    $client->close();
-                }
-            }
-            $this->cluster = null;
-        }
-    }
-
-    public function testKeyHashing()
-    {
-        $this->tearDown();
-        $this->cluster = new Credis_Cluster(array_slice($this->redisConfig, 0, 3), 2, $this->useStandalone);
-        $keys = array();
-        $lines = explode("\n", file_get_contents("keys.test"));
-        foreach ($lines as $line) {
-            $pair = explode(':', trim($line));
-            if (count($pair) >= 2) {
-                $keys[$pair[0]] = $pair[1];
-            }
-        }
-        foreach ($keys as $key => $value) {
-            $this->assertTrue($this->cluster->set($key, $value));
-        }
-        $this->cluster = new Credis_Cluster(array_slice($this->redisConfig, 0, 4), 2, true, $this->useStandalone);
-        $hits = 0;
-        foreach ($keys as $key => $value) {
-            if ($this->cluster->all('get', $key)) {
-                $hits++;
-            }
-        }
-        $this->assertEquals(count($keys), $hits);
-    }
-    public function testAlias()
-    {
-        $slicedConfig = array_slice($this->redisConfig, 0, 4);
-        foreach ($slicedConfig as $config) {
-            $this->assertEquals($config['port'], $this->cluster->client($config['alias'])->getPort());
-        }
-        foreach ($slicedConfig as $offset => $config) {
-            $this->assertEquals($config['port'], $this->cluster->client($offset)->getPort());
-        }
-        $alias = "non-existent-alias";
-        $this->setExpectedExceptionShim('CredisException', "Client $alias does not exist.");
-        $this->cluster->client($alias);
-    }
-    public function testMasterSlave()
-    {
-        $this->tearDown();
-        $this->cluster = new Credis_Cluster(array($this->redisConfig[0],$this->redisConfig[6]), 2, $this->useStandalone);
-        $this->assertTrue($this->cluster->client('master')->set('key', 'value'));
-        $this->waitForSlaveReplication();
-        $this->assertEquals('value', $this->cluster->client('slave')->get('key'));
-        $this->assertEquals('value', $this->cluster->get('key'));
-        try {
-            $this->cluster->client('slave')->set('key2', 'value');
-            $this->fail('Writing to readonly slave');
-        } catch(CredisException $e) {
-        }
-
-        $this->tearDown();
-        $writeOnlyConfig = $this->redisConfig[0];
-        $writeOnlyConfig['write_only'] = true;
-        $this->cluster = new Credis_Cluster(array($writeOnlyConfig,$this->redisConfig[6]), 2, $this->useStandalone);
-        $this->assertTrue($this->cluster->client('master')->set('key', 'value'));
-        $this->waitForSlaveReplication();
-        $this->assertEquals('value', $this->cluster->client('slave')->get('key'));
-        $this->assertEquals('value', $this->cluster->get('key'));
-        $this->setExpectedExceptionShim('CredisException');
-        $this->assertFalse($this->cluster->client('slave')->set('key2', 'value'));
-    }
-    public function testMasterWithoutSlavesAndWriteOnlyFlag()
-    {
-        $this->tearDown();
-        $writeOnlyConfig = $this->redisConfig[0];
-        $writeOnlyConfig['write_only'] = true;
-        $this->cluster = new Credis_Cluster(array($writeOnlyConfig), 2, $this->useStandalone);
-        $this->assertTrue($this->cluster->set('key', 'value'));
-        $this->assertEquals('value', $this->cluster->get('key'));
-    }
-    public function testDontHashForCodeCoverage()
-    {
-        if (method_exists($this, 'assertIsArray')) {
-            $this->assertIsArray($this->cluster->info());
-        } else {
-            $this->assertInternalType('array', $this->cluster->info());
-        }
-    }
-    public function testByHash()
-    {
-        $this->cluster->set('key', 'value');
-        $this->assertEquals(6379, $this->cluster->byHash('key')->getPort());
-    }
-    public function testRwsplit()
-    {
-        $readOnlyCommands = array(
-            'EXISTS',
-            'TYPE',
-            'KEYS',
-            'SCAN',
-            'RANDOMKEY',
-            'TTL',
-            'GET',
-            'MGET',
-            'SUBSTR',
-            'STRLEN',
-            'GETRANGE',
-            'GETBIT',
-            'LLEN',
-            'LRANGE',
-            'LINDEX',
-            'SCARD',
-            'SISMEMBER',
-            'SINTER',
-            'SUNION',
-            'SDIFF',
-            'SMEMBERS',
-            'SSCAN',
-            'SRANDMEMBER',
-            'ZRANGE',
-            'ZREVRANGE',
-            'ZRANGEBYSCORE',
-            'ZREVRANGEBYSCORE',
-            'ZCARD',
-            'ZSCORE',
-            'ZCOUNT',
-            'ZRANK',
-            'ZREVRANK',
-            'ZSCAN',
-            'HGET',
-            'HMGET',
-            'HEXISTS',
-            'HLEN',
-            'HKEYS',
-            'HVALS',
-            'HGETALL',
-            'HSCAN',
-            'PING',
-            'AUTH',
-            'SELECT',
-            'ECHO',
-            'QUIT',
-            'OBJECT',
-            'BITCOUNT',
-            'TIME',
-            'SORT'
+        $this->credis = new Credis_Cluster(
+            null,
+            [getenv('REDIS_NODE_1_SEED')],
+            null,
+            null,
+            false,
+            getenv('REDIS_PASSWORD'),
+            null,
+            ['cafile' => '/certs/server.cert', 'verify_peer_name' => false]
         );
-        foreach ($readOnlyCommands as $command) {
-            $this->assertTrue($this->cluster->isReadOnlyCommand($command));
-        }
-        $this->assertFalse($this->cluster->isReadOnlyCommand("SET"));
-        $this->assertFalse($this->cluster->isReadOnlyCommand("HDEL"));
-        $this->assertFalse($this->cluster->isReadOnlyCommand("RPUSH"));
-        $this->assertFalse($this->cluster->isReadOnlyCommand("SMOVE"));
-        $this->assertFalse($this->cluster->isReadOnlyCommand("ZADD"));
+        $this->credis->flushDb('redis-node-1', 6379);
+        $this->credis->flushDb('redis-node-2', 6379);
+        $this->credis->flushDb('redis-node-3', 6379);
+        $this->credis->flushDb('redis-node-4', 6379);
+        $this->credis->flushDb('redis-node-5', 6379);
+        $this->credis->flushDb('redis-node-6', 6379);
     }
-    public function testCredisClientInstancesInConstructor()
+
+    /**
+     * @inheritDoc
+     */
+    public static function setUpBeforeClassInternal()
     {
-        $this->tearDown();
-        $two = new Credis_Client($this->redisConfig[1]['host'], $this->redisConfig[1]['port']);
-        $three = new Credis_Client($this->redisConfig[2]['host'], $this->redisConfig[2]['port']);
-        $four = new Credis_Client($this->redisConfig[3]['host'], $this->redisConfig[3]['port']);
-        $this->cluster = new Credis_Cluster(array($two,$three,$four), 2, $this->useStandalone);
-        $this->assertTrue($this->cluster->set('key', 'value'));
-        $this->assertEquals('value', $this->cluster->get('key'));
-        $this->setExpectedExceptionShim('CredisException', 'Server should either be an array or an instance of Credis_Client');
-        new Credis_Cluster(array(new stdClass()), 2, $this->useStandalone);
     }
-    public function testSetMasterClient()
+
+    /**
+     * @inheritDoc
+     */
+    public static function tearDownAfterClassInternal()
     {
-        $this->tearDown();
-        $master = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port']);
-        $slave = new Credis_Client($this->redisConfig[6]['host'], $this->redisConfig[6]['port']);
+    }
 
-        $this->cluster = new Credis_Cluster(array($slave), 2, $this->useStandalone);
-        $this->assertInstanceOf('Credis_Cluster', $this->cluster->setMasterClient($master));
-        $this->assertCount(2, $this->cluster->clients());
-        $this->assertEquals($this->redisConfig[6]['port'], $this->cluster->client(0)->getPort());
-        $this->assertEquals($this->redisConfig[0]['port'], $this->cluster->client('master')->getPort());
+    /**
+     * @inheritDoc
+     *
+     * TODO: After CredisClusterTest::flushDb is implemented, update this test and make sure to check various keys
+     * so that more than just 1 node is checked.
+     */
+    public function testFlush()
+    {
+        $this->markTestSkipped("RedisCluster::flushDb method incompatible with Redis::flushdb");
+    }
 
-        $this->cluster = new Credis_Cluster(array($this->redisConfig[0]), 2, $this->useStandalone);
-        $this->assertInstanceOf('Credis_Cluster', $this->cluster->setMasterClient(new Credis_Client($this->redisConfig[1]['host'], $this->redisConfig[1]['port'])));
-        $this->assertEquals($this->redisConfig[0]['port'], $this->cluster->client('master')->getPort());
+    /**
+     * @inheritDoc
+     *
+     * TODO: This test depends on CredisClusterTest::save which currently requires parameter specific redis node.
+     */
+    public function testReadTimeout()
+    {
+        $this->markTestSkipped("RedisCluster::save method incompatible with Redis::save");
+    }
 
-        $this->cluster = new Credis_Cluster(array($slave), 2, $this->useStandalone);
-        $this->assertInstanceOf('Credis_Cluster', $this->cluster->setMasterClient($master, true));
-        $this->assertCount(1, $this->cluster->clients());
+    /**
+     * @inheritDoc
+     */
+    public function testSortedSets()
+    {
+        $this->markTestSkipped("RedisCluster::zunionstore(): All keys don't hash to the same slot!");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * Note: copied from CredisTest::testHashes, but removed pipeline stuff since it ain't supported
+     */
+    public function testHashes()
+    {
+        $this->assertEquals(1, $this->credis->hSet('hash', 'field1', 'foo'));
+        $this->assertEquals(0, $this->credis->hSet('hash', 'field1', 'foo'));
+        $this->assertEquals('foo', $this->credis->hGet('hash', 'field1'));
+        $this->assertEquals(null, $this->credis->hGet('hash', 'x'));
+        $this->assertTrue($this->credis->hMSet('hash', array('field2' => 'Hello', 'field3' => 'World')));
+        $this->assertEquals(array('field1' => 'foo', 'field2' => 'Hello', 'nilfield' => false), $this->credis->hMGet('hash', array('field1', 'field2', 'nilfield')));
+        $this->assertEquals(array(), $this->credis->hGetAll('nohash'));
+        $this->assertEquals(array('field1' => 'foo', 'field2' => 'Hello', 'field3' => 'World'), $this->credis->hGetAll('hash'));
+        // test integer keys
+        $this->assertTrue($this->credis->hMSet('hashInt', array(0 => 'Hello', 1 => 'World')));
+        $this->assertEquals(array(0 => 'Hello', 1 => 'World'), $this->credis->hGetAll('hashInt'));
+        // Test long hash values
+        $longString = str_repeat(md5('asd'), 4096); // 128k (redis.h REDIS_INLINE_MAX_SIZE = 64k)
+        $this->assertEquals(1, $this->credis->hMSet('long_hash', array('count' => 1, 'data' => $longString)), 'Set long hash value');
+        $this->assertEquals($longString, $this->credis->hGet('long_hash', 'data'), 'Get long hash value');
+        $this->assertTrue($this->credis->hMSet('hash', array('field1' => 'foo', 'field2' => 'Hello')));
+
+    }
+
+    public function testPipeline()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testPipelineMulti()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testWatchMultiUnwatch()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testTransaction()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testServer()
+    {
+        $this->markTestSkipped("RedisCluster::info() expects at least 1");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: Remove this after RedisCluster::script is fixed.
+     */
+    public function testScripts()
+    {
+        $this->markTestSkipped('Bug in RedisCluster::script("load", string); returns null.');
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: Remove this after RedisCluster::pSubscribe is fixed.
+     */
+    public function testPubsub()
+    {
+        $this->markTestSkipped("Bug in RedisCluster::pSubscribe(); It shouldn't return.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own.
+     */
+    public function testDb()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own.
+     */
+    public function testPassword()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own.
+     */
+    public function testUsernameAndPassword()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own.
+     */
+    public function testGettersAndSetters()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own use different cluster configs.
+     */
+    public function testConnectionStrings()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own use different cluster configs.
+     */
+    public function testConnectionStringsTls()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * TODO: SuperClass's test is specific to Credis_Client.  We could make our own use different cluster configs.
+     */
+    public function testTLSConnection()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testConnectionStringsSocket()
+    {
+        $this->markTestSkipped("Not testing this for now. Does RedisCluster even support this?");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testInvalidTcpConnectionString()
+    {
+        $this->markTestSkipped("TODO: Need to add this to verify which URIs are compatible with RedisCluster");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testInvalidTlsConnectionString()
+    {
+        $this->markTestSkipped("TODO: Need to add this to verify which URIs are compatible with RedisCluster");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testInvalidUnixSocketConnectionString()
+    {
+        $this->markTestSkipped("Not testing this for now.");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testForceStandAloneAfterEstablishedConnection()
+    {
+        $this->markTestSkipped("Not supported.");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testscan()
+    {
+        $this->markTestSkipped("RedisCluster::scan requires argument for which node to scan");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testscanEmptyIterator()
+    {
+        $this->markTestSkipped("RedisCluster::scan requires argument for which node to scan");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function testPing()
+    {
+        $this->markTestSkipped("RedisCluster::ping requires argument for which node to scan");
     }
 }
