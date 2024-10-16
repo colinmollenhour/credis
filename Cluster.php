@@ -100,4 +100,28 @@ class Credis_Cluster extends Credis_Client
         }
         return $this;
     }
+
+    /**
+     * @return string|null
+     */
+    public function getClusterName()
+    {
+        return $this->clusterName;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getClusterSeeds()
+    {
+        return $this->clusterSeeds;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getPersistenceBool()
+    {
+        return $this->persistentBool;
+    }
 }
