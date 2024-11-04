@@ -101,6 +101,8 @@ Many methods of Credis_Cluster are compatible with Credis_Client, but there are 
 * Redis clusters do not support select(), as they only have a single database.
 * RedisCluster currently has buggy/broken behaviour for pSubscribe and script. This appears to be a bug and hopefully will be fixed in the future.
 
+### Note about tlsOptions for Credis_Cluster
+Because of weirdness in the behaviour of the $tlsOptions parameter of Credis_Cluster, when a seed is defined with a URL that starts with tls:// or ssl://, if $tlsOptions is null, then it will still try to connect without TLS, and it will fail.  This odd behaviour is because the connections to the nodes are gotten from the CLUSTER SLOTS command and those hostnames or IP address do not get prefixed with tls:// or ssl://, and it uses the existance of $tlsOptions array for determining which type of connection to make.  If you need TLS connection, the $tlsOptions value MUST be either an empty array, or an array with values.  If you want the connections to be made without TLS, then the $tlsOptions array MUST be null.
 
 &copy; 2011 [Colin Mollenhour](http://colin.mollenhour.com)
 &copy; 2009 [Justin Poliey](http://justinpoliey.com)

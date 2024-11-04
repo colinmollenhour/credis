@@ -48,7 +48,7 @@ class Credis_Cluster extends Credis_Client
      * @param bool $persistentBool Flag to establish persistent connection
      * @param string|null $password The authentication password of the Redis server
      * @param string|null $username The authentication username of the Redis server
-     * @param array|null $tlsOptions The authentication username of the Redis server
+     * @param array|null $tlsOptions If array, then uses TLS for non-seed connections; if null, no TLS for non-seed
      * @throws CredisException
      */
     public function __construct($clusterName = null, array $clusterSeeds = [], $timeout = null, $readTimeout = null, $persistentBool = false, $password = null, $username = null, $tlsOptions = null)
@@ -67,9 +67,7 @@ class Credis_Cluster extends Credis_Client
         $this->authPassword = $password;
         $this->authUsername = $username;
         $this->selectedDb = 0; // Note: Clusters don't have db, but it's in superclass
-        if (is_array($tlsOptions) && count($tlsOptions) !== 0) {
-            $this->setTlsOptions($tlsOptions);
-        }
+        $this->tlsOptions = $tlsOptions;
         // PHP Redis extension support TLS/ACL AUTH since 5.3.0 // Note: Do we need this in Credis_ClusterClient?
         $this->oldPhpRedis = (bool)version_compare(phpversion('redis'), '5.3.0', '<');
     }
@@ -91,8 +89,8 @@ class Credis_Cluster extends Credis_Client
                 isset($this->readTimeout) ? $this->readTimeout : 0,
                 $this->persistentBool, // Note:  This can't be $this->persistent, because it is string
                 ['user' => $this->authUsername, 'pass' => $this->authPassword],
-                // Note: RedisCluster uses TLS even if empty array is passed here, so we must pass null instead
-                empty($this->tlsOptions) ? null : $this->tlsOptions
+                // Note: RedisCluster won't use TLS for non-seed connections if this is null
+                $this->tlsOptions
             );
             $this->connectFailures = 0;
             $this->connected = true;
