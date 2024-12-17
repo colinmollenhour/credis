@@ -16,6 +16,11 @@
 class Credis_Cluster
 {
     /**
+     * Number of replicas for each server in the cluster
+     * @var int
+     */
+    protected $replicas;
+    /**
      * Collection of Credis_Client objects attached to Redis servers
      * @var Credis_Client[]
      */
