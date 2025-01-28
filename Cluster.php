@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Credis, a Redis interface for the modest
  *

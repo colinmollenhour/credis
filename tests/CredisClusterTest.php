@@ -78,7 +78,7 @@ class CredisClusterTest extends CredisTestCommon
         try {
             $this->cluster->client('slave')->set('key2', 'value');
             $this->fail('Writing to readonly slave');
-        } catch(CredisException $e) {
+        } catch (CredisException $e) {
         }
 
         $this->tearDown();
