@@ -10,8 +10,11 @@
 			"email": "colin@mollenhour.com"
 		}
 	],
+	"scripts": {
+		"format": "./vendor/bin/php-cs-fixer fix"
+	},
 	"require": {
-		"php": ">=5.6.0"
+		"php": ">=7.4.0"
 	},
 	"suggest": {
 		"ext-redis": "Improved performance for communicating with redis"
@@ -23,5 +26,8 @@
 			"Sentinel.php",
 			"Module.php"
 		]
+	},
+	"require-dev": {
+		"friendsofphp/php-cs-fixer": "^3.13"
 	}
 }
