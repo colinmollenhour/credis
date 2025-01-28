@@ -26,8 +26,5 @@
 			"Sentinel.php",
 			"Module.php"
 		]
-	},
-	"require-dev": {
-		"friendsofphp/php-cs-fixer": "^3.13"
 	}
 }

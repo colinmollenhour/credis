@@ -26,6 +26,15 @@ Credis_Client also supports transparent command renaming. Write code using the o
 client will send the aliased commands to the server transparently. Specify the renamed commands using a prefix
 for md5, a callable function, individual aliases, or an array map of aliases. See "Redis Security":http://redis.io/topics/security for more info.
 
+## Contributing
+
+Please be sure to add tests to cover and new or changed functionality and run the PHP-CS-Fixer to format the code.
+
+```shell
+composer require "friendsofphp/php-cs-fixer:^3.13" --dev --no-update -n
+composer format
+```
+
 ## Supported connection string formats
 
 ```php
