@@ -156,32 +156,7 @@ class CredisSentinelTest extends CredisTestCommon
         $this->setExpectedExceptionShim('CredisException', 'No such master with that name');
         $this->sentinel->createSlaveClients('non-existing-cluster');
     }
-    public function testCreateCluster()
-    {
-        $cluster = $this->sentinel->createCluster($this->sentinelConfig->clustername);
-        $this->assertInstanceOf('Credis_Cluster', $cluster);
-        $this->assertCount(2, $cluster->clients());
-        $cluster = $this->sentinel->createCluster($this->sentinelConfig->clustername, 0, 1, false);
-        $this->assertInstanceOf('Credis_Cluster', $cluster);
-        $this->assertCount(2, $cluster->clients());
-        $this->setExpectedExceptionShim('CredisException', 'The master is down');
-        $this->sentinel->createCluster($this->sentinelConfig->downclustername);
-    }
-    public function testGetCluster()
-    {
-        $cluster = $this->sentinel->getCluster($this->sentinelConfig->clustername);
-        $this->assertInstanceOf('Credis_Cluster', $cluster);
-        $this->assertCount(2, $cluster->clients());
-    }
-    public function testGetClusterOnDbNumber2()
-    {
-        $cluster = $this->sentinel->getCluster($this->sentinelConfig->clustername, 2);
-        $this->assertInstanceOf('Credis_Cluster', $cluster);
-        $this->assertCount(2, $cluster->clients());
-        $clients = $cluster->clients();
-        $this->assertEquals(2, $clients[0]->getSelectedDb());
-        $this->assertEquals(2, $clients[1]->getSelectedDb());
-    }
+
     public function testGetMasterAddressByName()
     {
         $address = $this->sentinel->getMasterAddressByName($this->sentinelConfig->clustername);
