@@ -78,7 +78,7 @@ $particles = $redis->lrange('particles', 0, -1);
 
 ## Clustering your servers
 
-Credis also includes a way for developers to fully utilize the [scalability of Redis cluster](https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/) by using Credis_Client which is an adapter for the RedisCluster class from [the Redis extension for PHP](https://github.com/phpredis/phpredis). This also works on [AWS ElastiCatch clusters](https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Clusters.html).
+Credis also includes a way for developers to fully utilize the [scalability of Redis cluster](https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/) by using Credis_Cluster which is an adapter for the RedisCluster class from [the Redis extension for PHP](https://github.com/phpredis/phpredis). This also works on [AWS ElastiCatch clusters](https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/Clusters.html).
 This feature requires the PHP extension for its functionality. Here is an example how to set up a cluster:
 
 ### Basic clustering example

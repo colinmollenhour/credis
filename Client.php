@@ -1319,6 +1319,10 @@ class Credis_Client
                     // For phpredis pre-v5.3, the type signature is string, not array|string
                     $args = $this->oldPhpRedis ? $args : array($args);
                     break;
+                case 'flushdb':
+                    // Note: in RedisCluster, first argument can be array for FlushDb
+                case 'flushall':
+                    break;
                 default:
                     // Flatten arguments
                     $args = self::_flattenArguments($args);

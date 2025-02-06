@@ -123,4 +123,9 @@ class Credis_Cluster extends Credis_Client
     {
         return $this->persistentBool;
     }
+
+    public function getClusterMasters() : array {
+        $this->connect();
+        return $this->redis->_masters();
+    }
 }

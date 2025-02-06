@@ -5,6 +5,10 @@ require_once dirname(__FILE__).'/../Cluster.php';
 
 class CredisClusterTest extends CredisTest
 {
+
+    const portBase = 28123;
+    const password = "password-for-testing";
+
     /**
      * @inheritDoc
      */
@@ -12,27 +16,68 @@ class CredisClusterTest extends CredisTest
     {
         $this->credis = new Credis_Cluster(
             null,
-            [getenv('REDIS_NODE_1_SEED')],
+            ["127.0.0.1:" . self::portBase],
             null,
             null,
             false,
-            getenv('REDIS_PASSWORD'),
+            self::password,
             null,
-            ['cafile' => '/certs/server.cert', 'verify_peer_name' => false]
+            ['cafile' => './tls/ca.crt', 'verify_peer_name' => false]
         );
-        $this->credis->flushDb('redis-node-1', 6379);
-        $this->credis->flushDb('redis-node-2', 6379);
-        $this->credis->flushDb('redis-node-3', 6379);
-        $this->credis->flushDb('redis-node-4', 6379);
-        $this->credis->flushDb('redis-node-5', 6379);
-        $this->credis->flushDb('redis-node-6', 6379);
+        foreach ($this->credis->getClusterMasters() as $master) {
+            $output = $this->credis->flushDb($master, false);
+        }
     }
+
+    private static $serverProcesses = [];
 
     /**
      * @inheritDoc
      */
     public static function setUpBeforeClassInternal()
     {
+        chdir(__DIR__.'/../');
+        if (!file_exists('./tests/tls/ca.crt') || !file_exists('./tests/tls/server.crt')) {
+                // generate SSL keys
+            system('./tests/gen-test-certs.sh');
+        }
+        chdir(__DIR__);
+        for ($i = 0; $i < 6; $i++) {
+            $process = proc_open(
+                sprintf(
+                    'exec redis-server redis-cluster.conf --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf',
+                    self::portBase + $i,
+                    self::portBase + $i,
+                ),
+                [],
+                $pipes,
+            );
+            if (!$process) { 
+                throw new \Exception("redis-server start failed");
+            }
+            self::$serverProcesses[] = $process;
+        }
+        self::clusterAssemble();
+    }
+
+
+    public static function clusterAssemble()
+    {
+        system(sprintf(
+            "bash -c %s",
+            escapeshellarg(sprintf(
+                "(redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) || (yes yes | redis-cli -a %s --tls --cacert ./tls/ca.crt --cluster create 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d --cluster-replicas 1)",
+                escapeshellarg(self::password),
+                self::portBase + 0,
+                escapeshellarg(self::password),
+                self::portBase + 0,
+                self::portBase + 1,
+                self::portBase + 2,
+                self::portBase + 3,
+                self::portBase + 4,
+                self::portBase + 5,
+            ))
+        ));
     }
 
     /**
@@ -40,6 +85,9 @@ class CredisClusterTest extends CredisTest
      */
     public static function tearDownAfterClassInternal()
     {
+        while ($process = array_pop(self::$serverProcesses)) {
+            proc_terminate($process);
+        }
     }
 
     /**
@@ -274,5 +322,12 @@ class CredisClusterTest extends CredisTest
     public function testPing()
     {
         $this->markTestSkipped("RedisCluster::ping requires argument for which node to scan");
+    }
+
+    public function testGetClusterNodes()
+    {
+        $masters = $this->credis->getClusterMasters();
+        $this->assertIsArray($masters);
+        $this->assertNotEmpty($masters);
     }
 }

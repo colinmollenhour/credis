@@ -106,7 +106,9 @@ class CredisTestCommon extends CredisTestCommonShim
             chdir(__DIR__);
             $directoryIterator = new DirectoryIterator(__DIR__);
             foreach ($directoryIterator as $item) {
-                if (!$item->isfile() || !preg_match('/^redis\-(.+)\.conf$/', $item->getFilename()) || $item->getFilename() == 'redis-sentinel.conf') {
+                if (!$item->isfile() || !preg_match('/^redis\-(.+)\.conf$/', $item->getFilename())
+                    || $item->getFilename() == 'redis-sentinel.conf' || $item->getFilename() == 'redis-cluster.conf'
+                ) {
                     continue;
                 }
                 exec('redis-server '.$item->getFilename());
