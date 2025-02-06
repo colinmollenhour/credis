@@ -150,7 +150,6 @@ class Credis_Cluster extends Credis_Client
 
     public function flushDb(...$args)
     {
-        printf("flushDB(%s)\n\n\n", var_export($args, true));
         foreach ($this->getClusterMasters() as $master) {
             $output = $this->redis->flushDb($master, ...$args);
         }

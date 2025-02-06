@@ -60,12 +60,19 @@ class CredisClusterTest extends CredisTest
 
     private static function waitForServersUp()
     {
+        for ($i = 0; $i < 6; $i++) {
+            self::waitForServerUp(self::portBase + $i);
+        }
+    }
+
+    private static function waitForServerUp($port)
+    {
         system(sprintf(
             "timeout 30s bash -c %s",
             escapeshellarg(sprintf(
                 "until (redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info ) ; do sleep 1; done",
                 escapeshellarg(self::password),
-                self::portBase + 0,
+                $port,
             ))
         ));
     }
