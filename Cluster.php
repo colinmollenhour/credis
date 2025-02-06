@@ -124,12 +124,14 @@ class Credis_Cluster extends Credis_Client
         return $this->persistentBool;
     }
 
-    public function getClusterMasters() : array {
+    public function getClusterMasters(): array
+    {
         $this->connect();
         return $this->redis->_masters();
     }
 
-    public function ping($name = null) {
+    public function ping($name = null)
+    {
         if ($name === null) {
             // Note: this is workaround to match behaviour of Credis_Client
             $name = "PONG";
@@ -146,7 +148,8 @@ class Credis_Cluster extends Credis_Client
         return $this;
     }
 
-    public function flushDb(...$args) {
+    public function flushDb(...$args)
+    {
         printf("flushDB(%s)\n\n\n", var_export($args, true));
         foreach ($this->getClusterMasters() as $master) {
             $output = $this->redis->flushDb($master, ...$args);
@@ -154,7 +157,8 @@ class Credis_Cluster extends Credis_Client
         return $output;
     }
 
-    public function flushAll(...$args) {
+    public function flushAll(...$args)
+    {
         foreach ($this->getClusterMasters() as $master) {
             $output = $this->redis->flushAll($master, ...$args);
         }

@@ -5,7 +5,6 @@ require_once dirname(__FILE__).'/../Cluster.php';
 
 class CredisClusterTest extends CredisTest
 {
-
     const portBase = 28123;
     const password = "password-for-testing";
 
@@ -36,7 +35,7 @@ class CredisClusterTest extends CredisTest
     {
         chdir(__DIR__.'/../');
         if (!file_exists('./tests/tls/ca.crt') || !file_exists('./tests/tls/server.crt')) {
-                // generate SSL keys
+            // generate SSL keys
             system('./tests/gen-test-certs.sh');
         }
         chdir(__DIR__);
@@ -50,7 +49,7 @@ class CredisClusterTest extends CredisTest
                 [],
                 $pipes,
             );
-            if (!$process) { 
+            if (!$process) {
                 throw new \Exception("redis-server start failed");
             }
             self::$serverProcesses[] = $process;
