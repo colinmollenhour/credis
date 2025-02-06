@@ -42,7 +42,9 @@ class CredisClusterTest extends CredisTest
         for ($i = 0; $i < 6; $i++) {
             $process = proc_open(
                 sprintf(
-                    'exec redis-server redis-cluster.conf --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf',
+                    'exec redis-server redis-cluster.conf --dbfilename dump.%d.rdb --appendfilename appendonly.%d.aof --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf',
+                    self::portBase + $i,
+                    self::portBase + $i,
                     self::portBase + $i,
                     self::portBase + $i,
                 ),
