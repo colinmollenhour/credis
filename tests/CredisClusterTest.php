@@ -24,9 +24,7 @@ class CredisClusterTest extends CredisTest
             null,
             ['cafile' => './tls/ca.crt', 'verify_peer_name' => false]
         );
-        foreach ($this->credis->getClusterMasters() as $master) {
-            $output = $this->credis->flushDb($master, false);
-        }
+        $output = $this->credis->flushDb(false);
     }
 
     private static $serverProcesses = [];
@@ -57,7 +55,20 @@ class CredisClusterTest extends CredisTest
             }
             self::$serverProcesses[] = $process;
         }
+        self::waitForServersUp();
         self::clusterAssemble();
+    }
+
+    private static function waitForServersUp()
+    {
+        system(sprintf(
+            "timeout 30s bash -c %s",
+            escapeshellarg(sprintf(
+                "until (redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info ) ; do sleep 1; done",
+                escapeshellarg(self::password),
+                self::portBase + 0,
+            ))
+        ));
     }
 
     private static function clusterAssemble()
@@ -89,16 +100,6 @@ class CredisClusterTest extends CredisTest
         }
     }
 
-    /**
-     * @inheritDoc
-     *
-     * TODO: After CredisClusterTest::flushDb is implemented, update this test and make sure to check various keys
-     * so that more than just 1 node is checked.
-     */
-    public function testFlush()
-    {
-        $this->markTestSkipped("RedisCluster::flushDb method incompatible with Redis::flushdb");
-    }
 
     /**
      * @inheritDoc
@@ -315,13 +316,6 @@ class CredisClusterTest extends CredisTest
         $this->markTestSkipped("RedisCluster::scan requires argument for which node to scan");
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function testPing()
-    {
-        $this->markTestSkipped("RedisCluster::ping requires argument for which node to scan");
-    }
 
     public function testGetClusterNodes()
     {

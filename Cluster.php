@@ -128,4 +128,36 @@ class Credis_Cluster extends Credis_Client
         $this->connect();
         return $this->redis->_masters();
     }
+
+    public function ping($name = null) {
+        if ($name === null) {
+            // Note: this is workaround to match behaviour of Credis_Client
+            $name = "PONG";
+        }
+        foreach ($this->getClusterMasters() as $master) {
+            $output = $this->redis->ping($master, $name);
+            if (($output !== true) && (is_string($output)) && ($output !== $this->redis)) {
+                return $output;
+            }
+        }
+        if (is_string($output)) {
+            return $output;
+        }
+        return $this;
+    }
+
+    public function flushDb(...$args) {
+        printf("flushDB(%s)\n\n\n", var_export($args, true));
+        foreach ($this->getClusterMasters() as $master) {
+            $output = $this->redis->flushDb($master, ...$args);
+        }
+        return $output;
+    }
+
+    public function flushAll(...$args) {
+        foreach ($this->getClusterMasters() as $master) {
+            $output = $this->redis->flushAll($master, ...$args);
+        }
+        return $output;
+    }
 }
