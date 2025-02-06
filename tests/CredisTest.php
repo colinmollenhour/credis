@@ -35,7 +35,6 @@ class CredisTest extends CredisTestCommon
 
     public function testReadTimeout()
     {
-        printf("\n\n\n\n!!!!!!!!!!!!!!!!!!!!!!!\ntestReadTimeout(): credis: %s\n", get_class($this->credis));
         $this->credis->setReadTimeout(0.0001);
         try {
             $this->credis->save();
