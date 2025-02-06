@@ -60,8 +60,7 @@ class CredisClusterTest extends CredisTest
         self::clusterAssemble();
     }
 
-
-    public static function clusterAssemble()
+    private static function clusterAssemble()
     {
         system(sprintf(
             "bash -c %s",
