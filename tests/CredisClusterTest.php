@@ -65,6 +65,7 @@ class CredisClusterTest extends CredisTest
         sleep(10);
         self::waitForServersUp();
         self::clusterAssemble();
+        self::waitForClusterStateOk();
     }
 
     private static function makeTemporaryDirectory()
@@ -112,6 +113,25 @@ class CredisClusterTest extends CredisTest
                 self::portBase + 3,
                 self::portBase + 4,
                 self::portBase + 5,
+            ))
+        ));
+    }
+
+    private static function waitForClusterStateOk()
+    {
+        for ($i = 0; $i < 6; $i++) {
+            self::waitForClusterStateOkPerNode(self::portBase + $i);
+        }
+    }
+
+    private static function waitForClusterStateOkPerNode($port)
+    {
+        system(sprintf(
+            "timeout 30s bash -c %s",
+            escapeshellarg(sprintf(
+                "until (redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) ; do sleep 1; done",
+                escapeshellarg(self::password),
+                $port,
             ))
         ));
     }
