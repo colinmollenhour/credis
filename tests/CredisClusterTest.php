@@ -131,7 +131,7 @@ class CredisClusterTest extends CredisTest
                 if (!$running) {
                     break;
                 }
-            } while (time() - $startTime < 10); 
+            } while (time() - $startTime < 10);
             if ($running) {
                 proc_terminate($process, 9); //SIGKILL if still running at this point
             }
