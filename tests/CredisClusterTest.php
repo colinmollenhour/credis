@@ -43,8 +43,7 @@ class CredisClusterTest extends CredisTest
             $tempDirectory = self::makeTemporaryDirectory();
             $process = proc_open(
                 sprintf(
-                    'exec redis-server redis-cluster.conf --dbfilename dump.%d.rdb --appendfilename appendonly.%d.aof --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf --dir %s --tls-cert-file %s --tls-key-file %s --tls-ca-cert-file %s --tls-dh-params-file %s',
-                    self::portBase + $i,
+                    'exec redis-server redis-cluster.conf --dbfilename dump.%d.rdb --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf --dir %s --tls-cert-file %s --tls-key-file %s --tls-ca-cert-file %s --tls-dh-params-file %s',
                     self::portBase + $i,
                     self::portBase + $i,
                     self::portBase + $i,
@@ -157,7 +156,6 @@ class CredisClusterTest extends CredisTest
             }
         }
     }
-
 
     /**
      * @inheritDoc
@@ -380,5 +378,34 @@ class CredisClusterTest extends CredisTest
         $masters = $this->credis->getClusterMasters();
         $this->assertIsArray($masters);
         $this->assertNotEmpty($masters);
+    }
+
+    public function testPingForNode()
+    {
+        $master = $this->credis->getClusterMasters()[0];
+        $pong = $this->credis->pingForNode($master);
+        $this->assertEquals("PONG", $pong);
+        $pong = $this->credis->pingForNode($master, "test");
+        $this->assertEquals("test", $pong);
+    }
+
+    public function testFlushDbForNode()
+    {
+        $master = $this->credis->getClusterMasters()[0];
+        $this->assertTrue($this->credis->flushDbForNode($master));
+        $this->credis->set('foo', 'FOO');
+        $this->assertEquals('FOO', $this->credis->get('foo'));
+        $this->assertTrue($this->credis->flushDbForNode('foo'));
+        $this->assertFalse($this->credis->get('foo'));
+    }
+
+    public function testFlushAllForNode()
+    {
+        $master = $this->credis->getClusterMasters()[0];
+        $this->assertTrue($this->credis->flushAllForNode($master));
+        $this->credis->set('foo', 'FOO');
+        $this->assertEquals('FOO', $this->credis->get('foo'));
+        $this->assertTrue($this->credis->flushAllForNode('foo'));
+        $this->assertFalse($this->credis->get('foo'));
     }
 }

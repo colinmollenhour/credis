@@ -130,26 +130,31 @@ class Credis_Cluster extends Credis_Client
         return $this->redis->_masters();
     }
 
-    public function ping($name = null)
+    public function ping($message = null)
     {
-        if ($name === null) {
-            // Note: this is workaround to match behaviour of Credis_Client
-            $name = "PONG";
-        }
+        $this->connect();
         foreach ($this->getClusterMasters() as $master) {
-            $output = $this->redis->ping($master, $name);
-            if (($output !== true) && (is_string($output)) && ($output !== $this->redis)) {
+            $response = $this->redis->ping($master, $message);
+            if (($response !== true) && (!is_string($response)) && ($response !== $this->redis)) {
                 return $output;
             }
         }
-        if (is_string($output)) {
-            return $output;
+        if ($response === $this->redis) {
+            return $this;
         }
-        return $this;
+        if ($response) {
+            if ($response === true) {
+                $response = isset($message) ? $message : "PONG";
+            } elseif ($response[0] === '+') {
+                $response = substr($response, 1);
+            }
+        }
+        return $response;
     }
 
     public function flushDb(...$args)
     {
+        $this->connect();
         foreach ($this->getClusterMasters() as $master) {
             $output = $this->redis->flushDb($master, ...$args);
         }
@@ -158,9 +163,45 @@ class Credis_Cluster extends Credis_Client
 
     public function flushAll(...$args)
     {
+        $this->connect();
         foreach ($this->getClusterMasters() as $master) {
             $output = $this->redis->flushAll($master, ...$args);
         }
         return $output;
+    }
+
+    public function flushAllForNode($node, ...$args)
+    {
+        $this->connect();
+        return $this->redis->flushAll($node, ...$args);
+    }
+
+    public function flushDbForNode($node, ...$args)
+    {
+        $this->connect();
+        return $this->redis->flushDb($node, ...$args);
+    }
+
+    public function pingForNode($node, ...$args)
+    {
+        $this->connect();
+        $response = $this->redis->ping($node, ...$args);
+        if ($response === $this->redis) {
+            return $this;
+        }
+        if ($response) {
+            if ($response === true) {
+                $response = isset($message) ? $message : "PONG";
+            } elseif ($response[0] === '+') {
+                $response = substr($response, 1);
+            }
+        }
+        return $response;
+    }
+
+    public function saveForNode($node, ...$args)
+    {
+        $this->connect();
+        return $this->redis->save($node, ...$args);
     }
 }
