@@ -40,13 +40,19 @@ class CredisClusterTest extends CredisTest
         }
         chdir(__DIR__);
         for ($i = 0; $i < 6; $i++) {
+            $tempDirectory = self::makeTemporaryDirectory();
             $process = proc_open(
                 sprintf(
-                    'exec redis-server redis-cluster.conf --dbfilename dump.%d.rdb --appendfilename appendonly.%d.aof --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf',
+                    'exec redis-server redis-cluster.conf --dbfilename dump.%d.rdb --appendfilename appendonly.%d.aof --bind 127.0.0.1 --tls-port %d --cluster-config-file nodes.%d.conf --dir %s --tls-cert-file %s --tls-key-file %s --tls-ca-cert-file %s --tls-dh-params-file %s',
                     self::portBase + $i,
                     self::portBase + $i,
                     self::portBase + $i,
                     self::portBase + $i,
+                    escapeshellarg($tempDirectory),
+                    escapeshellarg(__DIR__ . '/tls/redis.crt'),
+                    escapeshellarg(__DIR__ . '/tls/redis.key'),
+                    escapeshellarg(__DIR__ . '/tls/ca.crt'),
+                    escapeshellarg(__DIR__ . '/tls/redis.dh'),
                 ),
                 [],
                 $pipes,
@@ -58,6 +64,17 @@ class CredisClusterTest extends CredisTest
         }
         self::waitForServersUp();
         self::clusterAssemble();
+    }
+
+    private static function makeTemporaryDirectory()
+    {
+        for ($i = 0; $i < 100; $i++) {
+            $tempnam = tempnam(sys_get_temp_dir(), "");
+            file_exists($tempnam) && unlink($tempnam);
+            if (mkdir($tempnam)) {
+                return $tempnam;
+            }
+        }
     }
 
     private static function waitForServersUp()
@@ -103,8 +120,21 @@ class CredisClusterTest extends CredisTest
      */
     public static function tearDownAfterClassInternal()
     {
-        while ($process = array_pop(self::$serverProcesses)) {
+        foreach (self::$serverProcesses as $process) {
             proc_terminate($process);
+        }
+        $startTime = time();
+        // Wait for each redis-server to terminate.
+        foreach (self::$serverProcesses as $process) {
+            do {
+                $running =  !proc_get_status($process)['running'];
+                if (!$running) {
+                    break;
+                }
+            } while (time() - $startTime < 10); 
+            if ($running) {
+                proc_terminate($process, 9); //SIGKILL if still running at this point
+            }
         }
     }
 
