@@ -62,7 +62,6 @@ class CredisClusterTest extends CredisTest
             }
             self::$serverProcesses[] = $process;
         }
-        sleep(10);
         self::waitForServersUp();
         self::clusterAssemble();
         self::waitForClusterStateOk();
