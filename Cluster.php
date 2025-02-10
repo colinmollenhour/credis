@@ -14,7 +14,7 @@
  *
  * Note: RedisCluster currently has limitations like not supporting pipeline or multi.
  * Note: Many methods require an additional parameter to specify which node to run on, and only run on that node,
- *       such as save(), flushDB(), ping(), and scan().
+ *       such as saveForNode(), flushDBForNode(), and pingForNode().
  * Note: Redis clusters do not support select(), as they only have a single database.
  * Note: RedisCluster currently has buggy/broken behaviour for pSubscribe and script.
  */
@@ -124,12 +124,20 @@ class Credis_Cluster extends Credis_Client
         return $this->persistentBool;
     }
 
+    /*
+     * Gets list of masters from RedisCluster
+     */
     public function getClusterMasters(): array
     {
         $this->connect();
         return $this->redis->_masters();
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Runs PING on all the "master" nodes.
+     */
     public function ping($message = null)
     {
         $this->connect();
@@ -152,6 +160,11 @@ class Credis_Cluster extends Credis_Client
         return $response;
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Runs FLUSHDB on all the "master" nodes.
+     */
     public function flushDb(...$args)
     {
         $this->connect();
@@ -161,6 +174,12 @@ class Credis_Cluster extends Credis_Client
         return $output;
     }
 
+
+    /**
+     * @inheritDoc
+     *
+     * Runs FLUSHALL on all the "master" nodes.
+     */
     public function flushAll(...$args)
     {
         $this->connect();
@@ -170,18 +189,36 @@ class Credis_Cluster extends Credis_Client
         return $output;
     }
 
+    /**
+     * To specify the node, the first argument will either be a key which maps to a slot which maps to a node; or it
+     * can be an array of ['host': port] for a node.
+     *
+     * @see flushAll
+     */
     public function flushAllForNode($node, ...$args)
     {
         $this->connect();
         return $this->redis->flushAll($node, ...$args);
     }
 
+    /**
+     * To specify the node, the first argument will either be a key which maps to a slot which maps to a node; or it
+     * can be an array of ['host': port] for a node.
+     *
+     * @see flushDb
+     */
     public function flushDbForNode($node, ...$args)
     {
         $this->connect();
         return $this->redis->flushDb($node, ...$args);
     }
 
+    /**
+     * To specify the node, the first argument will either be a key which maps to a slot which maps to a node; or it
+     * can be an array of ['host': port] for a node.
+     *
+     * @see ping
+     */
     public function pingForNode($node, ...$args)
     {
         $this->connect();
@@ -199,6 +236,12 @@ class Credis_Cluster extends Credis_Client
         return $response;
     }
 
+    /**
+     * To specify the node, the first argument will either be a key which maps to a slot which maps to a node; or it
+     * can be an array of ['host': port] for a node.
+     *
+     * @see save
+     */
     public function saveForNode($node, ...$args)
     {
         $this->connect();

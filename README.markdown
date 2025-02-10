@@ -106,7 +106,7 @@ Many methods of Credis_Cluster are compatible with Credis_Client, but there are 
 ### Differences between the Credis_Client and Credis_Cluster classes
 
 * RedisCluster currently has limitations like not supporting pipeline or multi. This may be added in the future. See [here](https://github.com/phpredis/phpredis/blob/develop/cluster.md) for details.
-* Many methods require an additional parameter to specify which node to run on, and only run on that node, such as save(), flushDB(), ping(), and scan().
+* Many methods require an additional parameter to specify which node to run on, and only run on that node, such as saveForNode(), flushDbForNode(), and pingForNode().  To specify the node, the first argument will either be a key which maps to a slot which maps to a node; or it can be an array of ['host': port] for a node.
 * Redis clusters do not support select(), as they only have a single database.
 * RedisCluster currently has buggy/broken behaviour for pSubscribe and script. This appears to be a bug and hopefully will be fixed in the future.
 
