@@ -284,7 +284,6 @@ class CredisClusterTest extends CredisTest
         $this->assertEquals(4, count($range));
         $this->assertEquals(range(0, 3), array_keys($range));
 
-
         // testing zunionstore (intersection of sorted sets)
         $this->credis->zAdd('{hashtag}myset1', 10, 'key1');
         $this->credis->zAdd('{hashtag}myset1', 10, 'key2');
