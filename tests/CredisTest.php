@@ -17,6 +17,7 @@ class CredisTest extends CredisTestCommon
         }
         $this->credis->flushDb();
     }
+
     protected function tearDownInternal()
     {
         if ($this->credis) {
@@ -24,6 +25,7 @@ class CredisTest extends CredisTestCommon
             $this->credis = null;
         }
     }
+
     public function testFlush()
     {
         $this->credis->set('foo', 'FOO');
@@ -561,7 +563,7 @@ class CredisTest extends CredisTestCommon
         $this->credis->setReadTimeout($timeout);
         try {
             $testCase = $this;
-            $this->credis->pSubscribe(array('foobar','test*'), function ($credis, $pattern, $channel, $message) use ($testCase, &$time) {
+            $this->credis->pSubscribe(array('foobar', 'test*'), function ($credis, $pattern, $channel, $message) use ($testCase, &$time) {
                 $time = time(); // Reset timeout
                 // Test using: redis-cli publish foobar blah
                 $testCase->assertEquals('blah', $message);
@@ -866,6 +868,7 @@ class CredisTest extends CredisTestCommon
         $this->credis->forceStandalone();
         $this->assertTrue(true);
     }
+
     public function testHscan()
     {
         $this->credis->hmset('hash', array('name' => 'Jack','age' => 33));

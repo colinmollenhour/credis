@@ -1,7 +1,21 @@
 version: '2'
 services:
-  
+
+  php-83:
+    user: 3523:3523
+    build: env/php-8.3/
+    volumes:
+      - ../:/src/:ro
+      - certs:/certs:ro
+    env_file: "./.env"
+
   php-74:
+    user: 3523:3523
     build: env/php-7.4/
     volumes:
-      - ../:/src/
+      - ../:/src/:ro
+      - certs:/certs:ro
+    env_file: "./.env"
+
+volumes:
+  certs: {}

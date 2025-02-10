@@ -33,7 +33,6 @@ class CredisTestCommon extends CredisTestCommonShim
             }
             $this->redisConfig = $arrayConfig;
         }
-
         if (!$this->useStandalone && !extension_loaded('redis')) {
             $this->fail('The Redis extension is not loaded.');
         }
@@ -55,16 +54,13 @@ class CredisTestCommon extends CredisTestCommonShim
             }
             if ($this->slaveConfig === null) {
                 $this->markTestSkipped('Could not load slave config');
-
                 return false;
             }
         }
         $masterConfig = new Credis_Client($this->redisConfig[0]['host'], $this->redisConfig[0]['port']);
         $masterConfig->forceStandalone();
-
         $slaveConfig = new Credis_Client($this->slaveConfig['host'], $this->slaveConfig['port']);
         $slaveConfig->forceStandalone();
-
         $start = microtime(true);
         $timeout = $start + 60;
         while (microtime(true) < $timeout) {
@@ -110,7 +106,9 @@ class CredisTestCommon extends CredisTestCommonShim
             chdir(__DIR__);
             $directoryIterator = new DirectoryIterator(__DIR__);
             foreach ($directoryIterator as $item) {
-                if (!$item->isfile() || !preg_match('/^redis\-(.+)\.conf$/', $item->getFilename()) || $item->getFilename() == 'redis-sentinel.conf') {
+                if (!$item->isfile() || !preg_match('/^redis\-(.+)\.conf$/', $item->getFilename())
+                    || $item->getFilename() == 'redis-sentinel.conf' || $item->getFilename() == 'redis-cluster.conf'
+                ) {
                     continue;
                 }
                 exec('redis-server '.$item->getFilename());

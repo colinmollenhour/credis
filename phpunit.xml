@@ -5,9 +5,9 @@
             <file>tests/CredisTest.php</file>
             <file>tests/CredisStandaloneTest.php</file>
         </testsuite>
+        
         <testsuite name="Cluster">
             <file>tests/CredisClusterTest.php</file>
-            <file>tests/CredisStandaloneClusterTest.php</file>
         </testsuite>
         <testsuite name="Sentinel">
             <file>tests/CredisSentinelTest.php</file>
