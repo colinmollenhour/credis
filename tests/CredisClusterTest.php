@@ -160,19 +160,163 @@ class CredisClusterTest extends CredisTest
     /**
      * @inheritDoc
      *
-     * TODO: This test depends on CredisClusterTest::save which currently requires parameter specific redis node.
+     * TODO: Find out why save isn't triggering the read timeout when in Cluster
      */
     public function testReadTimeout()
     {
-        $this->markTestSkipped("RedisCluster::save method incompatible with Redis::save");
+        $this->markTestSkipped("RedisCluster::save is behaving differently than RedisClient in this test.");
     }
 
     /**
      * @inheritDoc
+     *
+     * Note: Copied from ClientTest.  Using Hash Tag in order to use multi-key operations in Redis Cluster.
      */
     public function testSortedSets()
     {
-        $this->markTestSkipped("RedisCluster::zunionstore(): All keys don't hash to the same slot!");
+        $this->assertEquals(1, $this->credis->zAdd('{hashtag}myset', 1, 'Hello'));
+        $this->assertEquals(1, $this->credis->zAdd('{hashtag}myset', 2.123, 'World'));
+        $this->assertEquals(1, $this->credis->zAdd('{hashtag}myset', 10, 'And'));
+        $this->assertEquals(1, $this->credis->zAdd('{hashtag}myset', 11, 'Goodbye'));
+
+        $this->assertEquals(4, count($this->credis->zRange('{hashtag}myset', 0, 4)));
+        $this->assertEquals(2, count($this->credis->zRange('{hashtag}myset', 0, 1)));
+
+        $range = $this->credis->zRange('{hashtag}myset', 1, 2);
+        $this->assertEquals(2, count($range));
+        $this->assertEquals('World', $range[0]);
+        $this->assertEquals('And', $range[1]);
+
+        $range = $this->credis->zRange('{hashtag}myset', 1, 2, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2.123, $range['World']);
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+
+        // withscores-option is off
+        // $range = $this->credis->zRange('{hashtag}myset', 0, 4, array('withscores'));
+        // $this->assertEquals(4, count($range));
+        // $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRange('{hashtag}myset', 0, 4, array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
+        $this->assertEquals(4, count($this->credis->zRevRange('{hashtag}myset', 0, 4)));
+        $this->assertEquals(2, count($this->credis->zRevRange('{hashtag}myset', 0, 1)));
+
+        $range = $this->credis->zRevRange('{hashtag}myset', 0, 1, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertEquals(11, $range['Goodbye']);
+
+        // withscores-option is off
+        $range = $this->credis->zRevRange('{hashtag}myset', 0, 4, array('withscores'));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRevRange('{hashtag}myset', 0, 4, array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
+        $this->assertEquals(4, count($this->credis->zRangeByScore('{hashtag}myset', '-inf', '+inf')));
+        $this->assertEquals(2, count($this->credis->zRangeByScore('{hashtag}myset', '1', '9')));
+
+        $range = $this->credis->zRangeByScore('{hashtag}myset', '-inf', '+inf', array('limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertEquals('World', $range[0]);
+        $this->assertEquals('And', $range[1]);
+
+        $range = $this->credis->zRangeByScore('{hashtag}myset', '-inf', '+inf', array('withscores' => true, 'limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2.123, $range['World']);
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+
+        $range = $this->credis->zRangeByScore('{hashtag}myset', 10, '+inf', array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertEquals(11, $range['Goodbye']);
+
+        // withscores-option is off
+        // $range = $this->credis->zRangeByScore('{hashtag}myset', '-inf', '+inf', array('withscores'));
+        // $this->assertEquals(4, count($range));
+        // $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRangeByScore('{hashtag}myset', '-inf', '+inf', array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
+        $this->assertEquals(4, count($this->credis->zRevRangeByScore('{hashtag}myset', '+inf', '-inf')));
+        $this->assertEquals(2, count($this->credis->zRevRangeByScore('{hashtag}myset', '9', '1')));
+
+        $range = $this->credis->zRevRangeByScore('{hashtag}myset', '+inf', '-inf', array('limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertEquals('World', $range[1]);
+        $this->assertEquals('And', $range[0]);
+
+        $range = $this->credis->zRevRangeByScore('{hashtag}myset', '+inf', '-inf', array('withscores' => true, 'limit' => array(1, 2)));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('World', $range));
+        $this->assertEquals(2.123, $range['World']);
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+
+        $range = $this->credis->zRevRangeByScore('{hashtag}myset', '+inf', 10, array('withscores' => true));
+        $this->assertEquals(2, count($range));
+        $this->assertTrue(array_key_exists('And', $range));
+        $this->assertEquals(10, $range['And']);
+        $this->assertTrue(array_key_exists('Goodbye', $range));
+        $this->assertEquals(11, $range['Goodbye']);
+
+        // withscores-option is off
+        // $range = $this->credis->zRevRangeByScore('{hashtag}myset', '+inf', '-inf', array('withscores'));
+        // $this->assertEquals(4, count($range));
+        // $this->assertEquals(range(0, 3), array_keys($range)); // expecting numeric array without scores
+
+        $range = $this->credis->zRevRangeByScore('{hashtag}myset', '+inf', '-inf', array('withscores' => false));
+        $this->assertEquals(4, count($range));
+        $this->assertEquals(range(0, 3), array_keys($range));
+
+
+        // testing zunionstore (intersection of sorted sets)
+        $this->credis->zAdd('{hashtag}myset1', 10, 'key1');
+        $this->credis->zAdd('{hashtag}myset1', 10, 'key2');
+        $this->credis->zAdd('{hashtag}myset1', 10, 'key_not_in_myset2');
+
+        $this->credis->zAdd('{hashtag}myset2', 15, 'key1');
+        $this->credis->zAdd('{hashtag}myset2', 15, 'key2');
+        $this->credis->zAdd('{hashtag}myset2', 15, 'key_not_in_myset1');
+
+        $this->credis->zUnionStore('{hashtag}myset3', array('{hashtag}myset1', '{hashtag}myset2'));
+        $range = $this->credis->zRangeByScore('{hashtag}myset3', '-inf', '+inf', array('withscores' => true));
+        $this->assertEquals(4, count($range));
+        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(25, $range['key1']);
+        $this->assertTrue(array_key_exists('key_not_in_myset1', $range));
+        $this->assertEquals(15, $range['key_not_in_myset1']);
+
+        // testing zunionstore AGGREGATE option
+        $this->credis->zUnionStore('{hashtag}myset4', array('{hashtag}myset1', '{hashtag}myset2'), array('aggregate' => 'max'));
+        $range = $this->credis->zRangeByScore('{hashtag}myset4', '-inf', '+inf', array('withscores' => true));
+        $this->assertEquals(4, count($range));
+        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(15, $range['key1']);
+        $this->assertTrue(array_key_exists('key2', $range));
+        $this->assertEquals(15, $range['key2']);
+
+        // testing zunionstore WEIGHTS option
+        $this->credis->zUnionStore('{hashtag}myset5', array('{hashtag}myset1', '{hashtag}myset2'), array('weights' => array(2, 4)));
+        $range = $this->credis->zRangeByScore('{hashtag}myset5', '-inf', '+inf', array('withscores' => true));
+        $this->assertEquals(4, count($range));
+        $this->assertTrue(array_key_exists('key1', $range));
+        $this->assertEquals(80, $range['key1']);
     }
 
     /**
