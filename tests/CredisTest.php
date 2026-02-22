@@ -314,6 +314,11 @@ class CredisTest extends CredisTestCommon
         $this->assertEquals(Credis_Client::TYPE_NONE, $this->credis->type('foo'));
     }
 
+    public function testEmptyPipeline()
+    {
+        $this->assertEquals(array(), $this->credis->pipeline()->exec());
+    }
+
     public function testPipeline()
     {
         $config = $this->credis->config('GET', '*');
@@ -330,6 +335,16 @@ class CredisTest extends CredisTestCommon
         } catch (CredisException $e) {
             $this->assertStringStartsWith('multi()/pipeline() mode can not be used with', $e->getMessage());
         }
+    }
+
+    public function testEmptyPipelineMulti()
+    {
+        $this->assertEquals(array(), $this->credis->pipeline()->multi()->exec());
+    }
+
+    public function testEmptyMultiPipeline()
+    {
+        $this->assertEquals(array(), $this->credis->multi()->pipeline()->exec());
     }
 
     public function testPipelineMulti()

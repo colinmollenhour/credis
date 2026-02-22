@@ -343,7 +343,22 @@ class CredisClusterTest extends CredisTest
         $this->assertTrue($this->credis->hMSet('hash', array('field1' => 'foo', 'field2' => 'Hello')));
     }
 
+    public function testEmptyPipeline()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
     public function testPipeline()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testEmptyPipelineMulti()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testEmptyMultiPipeline()
     {
         $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
     }
