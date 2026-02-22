@@ -32,7 +32,7 @@ class CredisException extends Exception
 
     public function __construct($message, $code = 0, $exception = null)
     {
-        if ($exception && get_class($exception) == 'RedisException' && strpos($message, 'read error on connection') === 0) {
+        if (($exception instanceof RedisException) && strpos($message, 'read error on connection') === 0) {
             $code = CredisException::CODE_DISCONNECTED;
         }
         parent::__construct($message, $code, $exception);
