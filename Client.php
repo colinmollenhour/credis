@@ -1420,7 +1420,7 @@ class Credis_Client
                         }
                         break;
                     case 'auth':
-                        if (is_bool($response) && $response === true) {
+                        if ($response === true) {
                             $this->redis->clearLastError();
                         }
                         // no break
