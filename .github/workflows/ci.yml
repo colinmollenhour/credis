@@ -9,6 +9,8 @@ jobs:
         include:
           - php-version: '7.4'
             phpunit: '^7.5'
+          - php-version: '7.4'
+            cs-fixer: '~3.13.0'
           - php-version: '8.0'
             phpunit: '^9'
           - php-version: '8.1'
@@ -36,13 +38,14 @@ jobs:
     - name: Install dependencies
       env:
         PHPUNIT_VERSION: ${{ matrix.phpunit }}
+        CS_FIXER_VERSION: ${{ matrix.cs-fixer }}
       run: |
         if [ ! -z "$PHPUNIT_VERSION" ]; then
           composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
           need_install_dev=1
         fi
-        if php -r 'exit(version_compare(PHP_VERSION, "8.0") >= 0 ? 1 : 0);'; then
-          composer require "friendsofphp/php-cs-fixer:~3.13.0" --dev --no-update -n
+        if [ ! -z "$CS_FIXER_VERSION" ]; then
+          composer require "friendsofphp/php-cs-fixer:${CS_FIXER_VERSION}" --dev --no-update -n
           need_install_dev=1
         fi
         if [ ! -z "$need_install_dev" ]; then
