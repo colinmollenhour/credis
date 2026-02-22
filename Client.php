@@ -1368,7 +1368,7 @@ class Credis_Client
             catch (RedisException $e) {
                 $code = 0;
                 try {
-                    if (!($result = $this->redis->IsConnected())) {
+                    if (!($result = $this->redis->isConnected())) {
                         $this->close(true);
                         $code = CredisException::CODE_DISCONNECTED;
                     }
