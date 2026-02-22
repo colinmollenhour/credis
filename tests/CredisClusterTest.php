@@ -341,7 +341,6 @@ class CredisClusterTest extends CredisTest
         $this->assertEquals(1, $this->credis->hMSet('long_hash', array('count' => 1, 'data' => $longString)), 'Set long hash value');
         $this->assertEquals($longString, $this->credis->hGet('long_hash', 'data'), 'Get long hash value');
         $this->assertTrue($this->credis->hMSet('hash', array('field1' => 'foo', 'field2' => 'Hello')));
-
     }
 
     public function testPipeline()
