@@ -9,8 +9,6 @@ jobs:
         include:
           - php-version: '7.4'
             phpunit: '^7.5'
-          - php-version: '7.4'
-            cs-fixer: '~3.13.0'
           - php-version: '8.0'
             phpunit: '^9'
           - php-version: '8.1'
@@ -21,7 +19,7 @@ jobs:
             phpunit: '^9'
           - php-version: '8.4'
             phpunit: '^9'
-    name: PHP ${{ matrix.php-version }} ${{ matrix.cs-fixer }}
+    name: PHP ${{ matrix.php-version }}
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -38,26 +36,13 @@ jobs:
     - name: Install dependencies
       env:
         PHPUNIT_VERSION: ${{ matrix.phpunit }}
-        CS_FIXER_VERSION: ${{ matrix.cs-fixer }}
       run: |
         if [ ! -z "$PHPUNIT_VERSION" ]; then
           composer require "phpunit/phpunit:${PHPUNIT_VERSION}" --dev --no-update -n
           need_install_dev=1
         fi
-        if [ ! -z "$CS_FIXER_VERSION" ]; then
-          composer require "friendsofphp/php-cs-fixer:${CS_FIXER_VERSION}" --dev --no-update -n
-          need_install_dev=1
-        fi
         if [ ! -z "$need_install_dev" ]; then
           composer install --dev -n
-        fi
-
-    - name: Run PHP CS Fixer
-      env:
-        PHP_CS_FIXER_IGNORE_ENV: 1
-      run: |
-        if [ -f ./vendor/bin/php-cs-fixer ]; then
-          ./vendor/bin/php-cs-fixer fix --diff --dry-run
         fi
 
     - name: Report phpredis version
@@ -65,3 +50,34 @@ jobs:
 
     - name: Unit tests
       run: ./vendor/bin/phpunit
+
+  cs-fixer:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version: '7.4'
+            cs-fixer: '~3.13.0'
+    name: php-cs-fixer ${{ matrix.cs-fixer }} - PHP ${{ matrix.php-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: Install dependencies
+        env:
+          CS_FIXER_VERSION: ${{ matrix.cs-fixer }}
+        run: |
+          composer require "friendsofphp/php-cs-fixer:${CS_FIXER_VERSION}" --dev --no-update -n
+          composer install --dev -n
+
+      - name: Run PHP CS Fixer
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: 1
+        run: |
+          ./vendor/bin/php-cs-fixer fix --diff --dry-run
