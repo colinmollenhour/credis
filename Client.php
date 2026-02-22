@@ -493,8 +493,8 @@ class Credis_Client
                     throw new CredisException('Invalid host format; expected ' . $this->scheme . '://host[:port][/persistence_identifier]');
                 }
                 $this->host = $matches[1];
-                $this->port = (int)(isset($matches[3]) ? $matches[3] : $this->port);
-                $this->persistent = isset($matches[5]) ? $matches[5] : $this->persistent;
+                $this->port = (int)($matches[3] ?? $this->port);
+                $this->persistent = $matches[5] ?? $this->persistent;
             } else {
                 $this->host = $matches[2];
                 $this->port = null;
@@ -1413,7 +1413,7 @@ class Credis_Client
                     case 'ping':
                         if ($response) {
                             if ($response === true) {
-                                $response = isset($args[0]) ? $args[0] : "PONG";
+                                $response = $args[0] ?? "PONG";
                             } elseif ($response[0] === '+') {
                                 $response = substr($response, 1);
                             }
