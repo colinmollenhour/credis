@@ -101,7 +101,7 @@ class CredisClusterTest extends CredisTest
         system(sprintf(
             "bash -c %s",
             escapeshellarg(sprintf(
-                "(redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) || (yes yes | redis-cli -a %s --tls --cacert ./tls/ca.crt --cluster create 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d --cluster-replicas 1)",
+                "(redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) || (yes yes | redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt --cluster create 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d --cluster-replicas 1)",
                 escapeshellarg(self::password),
                 self::portBase + 0,
                 escapeshellarg(self::password),
