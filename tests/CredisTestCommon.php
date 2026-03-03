@@ -11,6 +11,13 @@ if (version_compare(phpversion(), '8.0.0', '>=')) {
     include 'phpunit-shims/php7.php';
 }
 
+set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) {
+    if (!(error_reporting() & $errno)) {
+        return;
+    }
+    throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
+
 class CredisTestCommon extends CredisTestCommonShim
 {
     protected $useStandalone = false;

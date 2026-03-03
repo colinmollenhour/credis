@@ -89,7 +89,7 @@ class CredisClusterTest extends CredisTest
         system(sprintf(
             "timeout 30s bash -c %s",
             escapeshellarg(sprintf(
-                "until (redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info ) ; do sleep 1; done",
+                "until (redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info ) ; do sleep 1; done",
                 escapeshellarg(self::password),
                 $port,
             ))
@@ -101,7 +101,7 @@ class CredisClusterTest extends CredisTest
         system(sprintf(
             "bash -c %s",
             escapeshellarg(sprintf(
-                "(redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) || (yes yes | redis-cli -a %s --tls --cacert ./tls/ca.crt --cluster create 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d --cluster-replicas 1)",
+                "(redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) || (yes yes | redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt --cluster create 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d 127.0.0.1:%d --cluster-replicas 1)",
                 escapeshellarg(self::password),
                 self::portBase + 0,
                 escapeshellarg(self::password),
@@ -127,7 +127,7 @@ class CredisClusterTest extends CredisTest
         system(sprintf(
             "timeout 30s bash -c %s",
             escapeshellarg(sprintf(
-                "until (redis-cli -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) ; do sleep 1; done",
+                "until (redis-cli --no-auth-warning -a %s --tls --cacert ./tls/ca.crt -h 127.0.0.1 -p %d cluster info |grep cluster_state:ok) ; do sleep 1; done",
                 escapeshellarg(self::password),
                 $port,
             ))
@@ -341,10 +341,24 @@ class CredisClusterTest extends CredisTest
         $this->assertEquals(1, $this->credis->hMSet('long_hash', array('count' => 1, 'data' => $longString)), 'Set long hash value');
         $this->assertEquals($longString, $this->credis->hGet('long_hash', 'data'), 'Get long hash value');
         $this->assertTrue($this->credis->hMSet('hash', array('field1' => 'foo', 'field2' => 'Hello')));
+    }
 
+    public function testEmptyPipeline()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
     }
 
     public function testPipeline()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testEmptyPipelineMulti()
+    {
+        $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
+    }
+
+    public function testEmptyMultiPipeline()
     {
         $this->markTestSkipped("Pipeline isn't currently supported in CredisCluster");
     }
