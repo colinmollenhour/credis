@@ -239,7 +239,7 @@ class Credis_Sentinel
             }
 
             $flags = explode(',', $flags);
-            if (!array_intersect($flags, ['s_down', 'o_down', 'disconnected'])){
+            if (!array_intersect($flags, ['s_down', 'o_down', 'disconnected'])) {
                 $workingSlaves[] = new Credis_Client($replica['ip'], $replica['port'], $this->_timeout, $this->_persistent, $this->_db, $this->_password, $this->_username);
             }
         }
